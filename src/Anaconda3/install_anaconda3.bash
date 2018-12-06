@@ -34,6 +34,29 @@ ARCH=$(uname -s)
 MACH=$(uname -m)
 NODE=$(uname -n)
 
+# ------------------------------
+# Define an in-place sed command
+# Because Mac sed is stupid old,
+# use gsed if found.
+# ------------------------------
+
+if [[ $ARCH == Darwin ]]
+then
+   if [[ $(command -v gsed) ]]
+   then
+      #echo "Found gsed on macOS. Good job! You are smart!"
+      SED="$(command -v gsed) -i "
+   else
+      #echo "It is recommended to use GNU sed since macOS default"
+      #echo "sed is a useless BSD variant. Consider installing"
+      #echo "GNU sed from a packager like Homebrew:"
+      #echo "  brew install gnu-sed"
+      SED="$(command -v sed) -i.macbak "
+   fi 
+else
+   SED="$(command -v sed) -i "
+fi
+
 # -----------------------------
 # Set the Anaconda Architecture
 # -----------------------------
@@ -196,5 +219,9 @@ $ANACONDA_BINDIR/python3 -m pip install PyRTF3 pipenv ffnet
 #                                                                  #
 # cd $SCRIPTDIR                                                    #
 ####################################################################
+
+# Inject Joe Stassi's f2py shell fix into numpy
+# ---------------------------------------------
+find $ANACONDA_INSTALLDIR/lib -name 'exec_command.py' -print0 | xargs -0 $SED -i -e 's#^\( *\)use_shell = False#&\n\1command.insert(1, "-f")#'
 
 
