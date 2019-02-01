@@ -1,10 +1,10 @@
 #!/bin/bash
 
 usage() {
-   echo "Usage: $0 --python_version <python version> --anaconda_version <anaconda_version"
+   echo "Usage: $0 --python_version <python version> --anaconda_version <anaconda_version>"
    echo "   Required arguments:"
    echo "      --python_version <python version> (e.g., 3.7)"
-   echo "      --anaconda_version <anaconda version> (e.g., 5.3.1)"
+   echo "      --anaconda_version <anaconda version> (e.g., 2018.12)"
    echo ""
    echo "   Optional arguments:"
    echo "      --help: Print this message"
@@ -173,7 +173,9 @@ ANACONDA_BINDIR=$ANACONDA_INSTALLDIR/bin
 # MAT Blaze-core seems superseded by blaze
 #     ipython-notebook seems superseded by jupyter
 
-$ANACONDA_BINDIR/conda install -y mpi4py netcdf4 cartopy cubes krb5 \
+#$ANACONDA_BINDIR/conda install -y mpi4py
+
+$ANACONDA_BINDIR/conda install -y netcdf4 cartopy cubes krb5 \
    pyasn1 redis redis-py ujson mdp configobj blaze argcomplete biopython \
    launcher sockjs-tornado sphinx_rtd_theme virtualenv django mock psycopg2 \
    requests-toolbelt twine wxpython
@@ -184,7 +186,8 @@ $ANACONDA_BINDIR/conda install -y mpi4py netcdf4 cartopy cubes krb5 \
 if [[ $ANACONDA_ARCH == Linux ]]
 then
    $ANACONDA_BINDIR/conda install -y util-linux
-   # MAT wsgiref does not have a Python 3 package
+
+   # MAT wsgiref is a standard Python 3 library now
    #$ANACONDA_BINDIR/conda install -y wsgiref
 fi
 
@@ -200,7 +203,8 @@ $ANACONDA_BINDIR/conda install -y -c conda-forge iris pyhdf basemap \
    geotiff gdal f90wrap eofs joblib pyspharm windspharm mo_pack \
    libmo_unpack f90nml pygrib seawater biggus plotly theano matplotlib \
    tk xorg-kbproto xorg-libice xorg-libsm xorg-libx11 xorg-libxext \
-   xorg-libxrender xorg-renderproto xorg-xextproto xorg-xproto xarray
+   xorg-libxrender xorg-renderproto xorg-xextproto xorg-xproto xarray \
+   cmocean pip
 
 # PyRTF3 is the Python3 version of PyRTF/rtfw. Install from pip
 # -------------------------------------------------------------
