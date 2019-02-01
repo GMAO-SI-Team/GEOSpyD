@@ -57,22 +57,9 @@ else
    SED="$(command -v sed) -i "
 fi
 
-# -----------------------------
-# Set the Anaconda Architecture
-# -----------------------------
-
-if [[ $ARCH == Darwin ]]
-then
-   ANACONDA_ARCH=MacOSX
-else
-   ANACONDA_ARCH=Linux
-fi
-
-# --------------------------
-# Anaconda version variables
-# --------------------------
-
-ANACONDA_DISTVER=Anaconda2
+# ----------------------
+# Command line arguments
+# ----------------------
 
 while [[ -n "$1" ]]
 do
@@ -110,6 +97,35 @@ then
    echo "ERROR: Anaconda version not sent in"
    usage
    exit 1
+fi
+
+# --------------------------
+# Anaconda version variables
+# --------------------------
+
+PYTHON_MAJOR_VERSION=${PYTHON_VER:0:1}
+if [[ "$PYTHON_MAJOR_VERSION" != "2" && "$PYTHON_MAJOR_VERSION" != "3" ]]
+then
+   echo "Python version $PYTHON_VER implies Python major version $PYTHON_MAJOR_VERSION"
+   echo "This script only supports Python 2 or 3"
+   exit 2
+fi
+
+ANACONDA_DISTVER=Anaconda${PYTHON_MAJOR_VERSION}
+#echo $ANACONDA_DISTVER
+
+PYTHON_EXEC=python${PYTHON_MAJOR_VERSION}
+#echo $PYTHON_EXEC
+
+# -----------------------------
+# Set the Anaconda Architecture
+# -----------------------------
+
+if [[ $ARCH == Darwin ]]
+then
+   ANACONDA_ARCH=MacOSX
+else
+   ANACONDA_ARCH=Linux
 fi
 
 # -----------------------------------------------------------
@@ -152,15 +168,14 @@ ANACONDA_INSTALLDIR=$ANACONDA_DIR/$ANACONDA_VER/$PYTHON_VER/$DATE
 
 INSTALLER=${ANACONDA_DISTVER}-${ANACONDA_VER}-${ANACONDA_ARCH}-${MACH}.sh
 
-#echo "ANACONDA_SRCDIR     = $ANACONDA_SRCDIR"
+echo "ANACONDA_SRCDIR     = $ANACONDA_SRCDIR"
 echo "Anaconda will be installed in $ANACONDA_INSTALLDIR"
-#echo "INSTALLER           = $INSTALLER"
-#exit
+echo "INSTALLER           = $INSTALLER"
 
 if [[ ! -f $ANACONDA_SRCDIR/$INSTALLER ]]
 then
    REPO=https://repo.anaconda.com/archive
-   curl -O $REPO/$INSTALLER
+   (cd $ANACONDA_SRCDIR; curl -O $REPO/$INSTALLER)
 fi
 
 bash $ANACONDA_SRCDIR/$INSTALLER -b -p $ANACONDA_INSTALLDIR
@@ -187,7 +202,12 @@ if [[ $ANACONDA_ARCH == Linux ]]
 then
    $ANACONDA_BINDIR/conda install -y util-linux
 
-   $ANACONDA_BINDIR/conda install -y wsgiref
+   # wgsiref is part of Python 3 now
+   # -------------------------------
+   if [[ "$PYTHON_MAJOR_VERSION" == "2" ]]
+   then
+      $ANACONDA_BINDIR/conda install -y wsgiref
+   fi
 fi
 
 # Install weird nc_time_axis package
@@ -208,16 +228,30 @@ $ANACONDA_BINDIR/conda install -y -c conda-forge iris pyhdf basemap \
 # rtfw is the "replacement" for PyRTF. Install from pip
 # -----------------------------------------------------
 
-$ANACONDA_BINDIR/python2 -m pip install rtfw pipenv ffnet
+if [[ "$PYTHON_MAJOR_VERSION" == "2" ]]
+then
+   RTF_PACKAGE=rtfw
+elif [[ "$PYTHON_MAJOR_VERSION" == "3" ]]
+then
+   RTF_PACKAGE=PyRTF3
+else
+   echo "Should not be here"
+   exit 8
+fi
 
-# Finally pygrads is not even in pip
-# ----------------------------------
+$ANACONDA_BINDIR/$PYTHON_EXEC -m pip install $RTF_PACKAGE pipenv ffnet
 
-tar xf $ANACONDA_SRCDIR/pygrads-1.1.9.tar.gz -C $ANACONDA_SRCDIR
+# Finally pygrads is not even in pip, and only works for Python 2
+# ---------------------------------------------------------------
 
-cd $ANACONDA_SRCDIR/pygrads-1.1.9
+if [[ "$PYTHON_MAJOR_VERSION" == "2" ]]
+then
+   tar xf $ANACONDA_SRCDIR/pygrads-1.1.9.tar.gz -C $ANACONDA_SRCDIR
 
-$ANACONDA_BINDIR/python2 setup.py install
+   cd $ANACONDA_SRCDIR/pygrads-1.1.9
+
+   $ANACONDA_BINDIR/$PYTHON_EXEC setup.py install
+fi
 
 cd $SCRIPTDIR
 
