@@ -193,7 +193,7 @@ ANACONDA_BINDIR=$ANACONDA_INSTALLDIR/bin
 $ANACONDA_BINDIR/conda install -y netcdf4 cartopy cubes krb5 \
    pyasn1 redis redis-py ujson mdp configobj blaze argcomplete biopython \
    launcher sockjs-tornado sphinx_rtd_theme virtualenv django mock psycopg2 \
-   requests-toolbelt twine wxpython
+   requests-toolbelt twine wxpython configargparse
 
 # Many packages on Anaconda have no macOS or noarch version
 # ---------------------------------------------------------
@@ -223,7 +223,7 @@ $ANACONDA_BINDIR/conda install -y -c conda-forge iris pyhdf basemap \
    libmo_unpack f90nml pygrib seawater biggus plotly theano matplotlib \
    tk xorg-kbproto xorg-libice xorg-libsm xorg-libx11 xorg-libxext \
    xorg-libxrender xorg-renderproto xorg-xextproto xorg-xproto xarray \
-   cmocean pip
+   cmocean pip cis
 
 # rtfw is the "replacement" for PyRTF. Install from pip
 # -----------------------------------------------------
