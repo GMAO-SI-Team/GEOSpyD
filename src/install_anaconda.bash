@@ -281,4 +281,4 @@ find $ANACONDA_INSTALLDIR/lib -name 'exec_command.py' -print0 | xargs -0 $SED -i
 # ----------------------------------------------
 cd $ANACONDA_INSTALLDIR
 ./bin/conda list --explicit > distribution_spec_file.txt
-./bin/conda list > explicit_list_packages.txt
+./bin/conda list > conda_list_packages.txt
