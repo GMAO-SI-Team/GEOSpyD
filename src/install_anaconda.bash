@@ -1,13 +1,34 @@
 #!/bin/bash
 
+# -----
+# Usage
+# -----
+
+EXAMPLE_PY_VERSION="3.7"
+EXAMPLE_ANA_VERSION="2018.12"
+EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
+EXAMPLE_DATE=$(date +%F)
 usage() {
-   echo "Usage: $0 --python_version <python version> --anaconda_version <anaconda_version>"
+   echo "Usage: $0 --python_version <python version> --anaconda_version <anaconda_version> --prefix <prefix>"
+   echo ""
    echo "   Required arguments:"
-   echo "      --python_version <python version> (e.g., 3.7)"
-   echo "      --anaconda_version <anaconda version> (e.g., 2018.12)"
+   echo "      --python_version <python version> (e.g., ${EXAMPLE_PY_VERSION})"
+   echo "      --anaconda_version <anaconda version> (e.g., ${EXAMPLE_ANA_VERSION})"
+   echo "      --prefix <full path to installation directory> (e.g, ${EXAMPLE_INSTALLDIR})"
    echo ""
    echo "   Optional arguments:"
    echo "      --help: Print this message"
+   echo ""
+   echo "  NOTE: This script installs within ${EXAMPLE_INSTALLDIR} with a path based on:"
+   echo ""
+   echo "        1. The Anaconda version"
+   echo "        2. The Python version"
+   echo "        3. The date of the installation"
+   echo ""
+   echo "  For example: $0 --python_version ${EXAMPLE_PY_VERSION} --anaconda_version ${EXAMPLE_ANA_VERSION} --prefix ${EXAMPLE_INSTALLDIR}"
+   echo ""
+   echo "  will create an install at:"
+   echo "       ${EXAMPLE_INSTALLDIR}/${EXAMPLE_ANA_VERSION}_py${EXAMPLE_PY_VERSION}/${EXAMPLE_DATE}"
 }
 
 if [[ $# -lt 4 ]]
@@ -33,6 +54,19 @@ SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 ARCH=$(uname -s)
 MACH=$(uname -m)
 NODE=$(uname -n)
+
+if [[ $NODE =~ discover* || $NODE =~ borg* ]]
+then
+   SITE=NCCS
+elif [[ $NODE =~ pfe* || $NODE =~ r[0-9]*i[0-9]*n[0-9]* ]]
+then
+   SITE=NAS
+elif [[ -d /ford1/share/gmao_SIteam && -d /ford1/local && $ARCH == Linux ]]
+then
+   SITE=GMAO.desktop
+else
+   SITE=UNKNOWN
+fi
 
 # ------------------------------
 # Define an in-place sed command
@@ -72,6 +106,10 @@ do
          ANACONDA_VER=$2
          shift
          ;;
+      --prefix)
+         ANACONDA_DIR=$2
+         shift
+         ;;
       --help | -h)
          usage
          exit 1
@@ -99,6 +137,13 @@ then
    exit 1
 fi
 
+if [[ -z $ANACONDA_DIR ]]
+then
+   echo "ERROR: Anaconda installation directory not sent in"
+   usage
+   exit 1
+fi
+
 # --------------------------
 # Anaconda version variables
 # --------------------------
@@ -110,12 +155,11 @@ then
    echo "This script only supports Python 2 or 3"
    exit 2
 fi
+PYTHON_EXEC=python${PYTHON_MAJOR_VERSION}
 
 ANACONDA_DISTVER=Anaconda${PYTHON_MAJOR_VERSION}
-#echo $ANACONDA_DISTVER
 
-PYTHON_EXEC=python${PYTHON_MAJOR_VERSION}
-#echo $PYTHON_EXEC
+ANACONDA_SRCDIR=${SCRIPTDIR}/$ANACONDA_DISTVER
 
 # -----------------------------
 # Set the Anaconda Architecture
@@ -128,49 +172,28 @@ else
    ANACONDA_ARCH=Linux
 fi
 
-# -----------------------------------------------------------
-# Location of the Anaconda2 sh installer -- System Dependent!
-# -----------------------------------------------------------
-
-if [[ $NODE =~ discover* || $NODE =~ borg* ]]
+#------------------------------------------------------
+# Create the installtion directory if it does not exist
+#------------------------------------------------------
+if [ ! -d "$ANACONDA_DIR" ]
 then
-   SITE=NCCS
-elif [[ $NODE =~ pfe* || $NODE =~ r[0-9]*i[0-9]*n[0-9]* ]]
-then
-   SITE=NAS
-elif [[ -d /ford1/share/gmao_SIteam && -d /ford1/local && $ARCH == Linux ]]
-then
-   SITE=GMAO.desktop
-else
-   SITE=UNKNOWN
+   mkdir -p $ANACONDA_DIR
 fi
 
-case $SITE in
-   NCCS)
-      ANACONDA_DIR=/discover/swdev/mathomp4/anaconda
-      ;;
-   NAS)
-      ANACONDA_DIR=/nobackup/gmao_SIteam/anaconda
-      ;;
-   GMAO.desktop)
-      ANACONDA_DIR=/ford1/share/gmao_SIteam/anaconda
-      ;;
-   *)
-      # Let's just install to home
-      ANACONDA_DIR=$HOME/anaconda
-      ;;
-esac
-
-ANACONDA_SRCDIR=$ANACONDA_DIR/src/$ANACONDA_DISTVER
 DATE=$(date +%F)
-
-ANACONDA_INSTALLDIR=$ANACONDA_DIR/$ANACONDA_VER/$PYTHON_VER/$DATE
+ANACONDA_INSTALLDIR=$ANACONDA_DIR/${ANACONDA_VER}_py${PYTHON_VER}/$DATE
 
 INSTALLER=${ANACONDA_DISTVER}-${ANACONDA_VER}-${ANACONDA_ARCH}-${MACH}.sh
 
 echo "ANACONDA_SRCDIR     = $ANACONDA_SRCDIR"
+echo "INSTALLER           = $ANACONDA_SRCDIR/$INSTALLER"
 echo "Anaconda will be installed in $ANACONDA_INSTALLDIR"
-echo "INSTALLER           = $INSTALLER"
+
+if [[ -d $ANACONDA_INSTALLDIR ]]
+then
+   echo "ERROR: $ANACONDA_INSTALLDIR already exists! Exiting!"
+   exit 9
+fi
 
 if [[ ! -f $ANACONDA_SRCDIR/$INSTALLER ]]
 then
@@ -184,11 +207,6 @@ ANACONDA_BINDIR=$ANACONDA_INSTALLDIR/bin
 
 # Now install regular conda packages
 # ----------------------------------
-
-# MAT Blaze-core seems superseded by blaze
-#     ipython-notebook seems superseded by jupyter
-
-#$ANACONDA_BINDIR/conda install -y mpi4py
 
 $ANACONDA_BINDIR/conda install -y netcdf4 cartopy cubes krb5 \
    pyasn1 redis redis-py ujson mdp configobj blaze argcomplete biopython \
@@ -259,4 +277,8 @@ cd $SCRIPTDIR
 # ---------------------------------------------
 find $ANACONDA_INSTALLDIR/lib -name 'exec_command.py' -print0 | xargs -0 $SED -i -e 's#^\( *\)use_shell = False#&\n\1command.insert(1, "-f")#'
 
-
+# Use conda to output list of packages installed
+# ----------------------------------------------
+cd $ANACONDA_INSTALLDIR
+./bin/conda list --explicit > distribution_spec_file.txt
+./bin/conda list > explicit_list_packages.txt
