@@ -277,6 +277,11 @@ cd $SCRIPTDIR
 # ---------------------------------------------
 find $ANACONDA_INSTALLDIR/lib -name 'exec_command.py' -print0 | xargs -0 $SED -i -e 's#^\( *\)use_shell = False#&\n\1command.insert(1, "-f")#'
 
+# Edit matplotlibrc to use TkAgg as the default backend for matplotlib
+# as that is the only backend that seems supported on all systems
+# --------------------------------------------------------------------
+find $ANACONDA_INSTALLDIR/lib -name 'matplotlibrc' -print0 | xargs -0 $SED -i -e '/^backend/ s#\(backend *:\).*#\1 TkAgg#'
+
 # Use conda to output list of packages installed
 # ----------------------------------------------
 cd $ANACONDA_INSTALLDIR
