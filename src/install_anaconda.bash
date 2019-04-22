@@ -5,7 +5,7 @@
 # -----
 
 EXAMPLE_PY_VERSION="3.7"
-EXAMPLE_ANA_VERSION="2018.12"
+EXAMPLE_ANA_VERSION="2019.03"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
@@ -241,7 +241,7 @@ $ANACONDA_BINDIR/conda install -y -c conda-forge iris pyhdf basemap \
    libmo_unpack f90nml pygrib seawater biggus plotly theano matplotlib \
    tk xorg-kbproto xorg-libice xorg-libsm xorg-libx11 xorg-libxext \
    xorg-libxrender xorg-renderproto xorg-xextproto xorg-xproto xarray \
-   cmocean pip cis
+   cmocean pip cis cdsapi xgboost
 
 # rtfw is the "replacement" for PyRTF. Install from pip
 # -----------------------------------------------------
