@@ -277,6 +277,10 @@ cd $SCRIPTDIR
 # ---------------------------------------------
 find $ANACONDA_INSTALLDIR/lib -name 'exec_command.py' -print0 | xargs -0 $SED -i -e 's#^\( *\)use_shell = False#&\n\1command.insert(1, "-f")#'
 
+# Inject fix for Intel compiler in new numpy (1.16+) which uses subprocess now instead of exec_command.py
+# -------------------------------------------------------------------------------------------------------
+find $ANACONDA_INSTALLDIR/lib/python?.?/site-packages -name 'ccompiler.py' -print0 | xargs -0 $SED -i -e '/output = subprocess.check_output(version_cmd)/ s/version_cmd/version_cmd, stderr=subprocess.STDOUT/'
+
 # Edit matplotlibrc to use TkAgg as the default backend for matplotlib
 # as that is the only backend that seems supported on all systems
 # --------------------------------------------------------------------
