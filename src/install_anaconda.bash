@@ -210,16 +210,15 @@ ANACONDA_BINDIR=$ANACONDA_INSTALLDIR/bin
 
 $ANACONDA_BINDIR/conda install -y netcdf4 cartopy cubes krb5 \
    pyasn1 redis redis-py ujson mdp configobj blaze argcomplete biopython \
-   launcher sockjs-tornado sphinx_rtd_theme virtualenv django mock psycopg2 \
-   requests-toolbelt twine wxpython configargparse
+   sockjs-tornado sphinx_rtd_theme virtualenv django mock psycopg2 \
+   requests-toolbelt twine wxpython configargparse \
+   xarray geotiff gdal plotly theano
 
 # Many packages on Anaconda have no macOS or noarch version
 # ---------------------------------------------------------
 
 if [[ $ANACONDA_ARCH == Linux ]]
 then
-   $ANACONDA_BINDIR/conda install -y util-linux
-
    # wgsiref is part of Python 3 now
    # -------------------------------
    if [[ "$PYTHON_MAJOR_VERSION" == "2" ]]
@@ -227,6 +226,8 @@ then
       $ANACONDA_BINDIR/conda install -y wsgiref
    fi
 fi
+
+$ANACONDA_BINDIR/conda install -y -c conda-forge conda
 
 # Install weird nc_time_axis package
 # ----------------------------------
@@ -236,12 +237,23 @@ $ANACONDA_BINDIR/conda install -y -c conda-forge/label/renamed nc_time_axis
 # Install conda-forge packages
 # ----------------------------
 
+$ANACONDA_BINDIR/conda install -y -c conda-forge conda
+
 $ANACONDA_BINDIR/conda install -y -c conda-forge iris pyhdf basemap \
-   geotiff gdal f90wrap eofs joblib pyspharm windspharm mo_pack \
-   libmo_unpack f90nml pygrib seawater biggus plotly theano matplotlib \
-   tk xorg-kbproto xorg-libice xorg-libsm xorg-libx11 xorg-libxext \
-   xorg-libxrender xorg-renderproto xorg-xextproto xorg-xproto xarray \
-   cmocean pip cis cdsapi xgboost
+   eofs pyspharm windspharm mo_pack \
+   libmo_unpack f90nml seawater biggus \
+   cmocean pip cdsapi xgboost gooey hpccm \
+   xorg-libx11 xorg-kbproto xorg-xproto xorg-xextproto \
+   xorg-libxrender xorg-renderproto xorg-libice \
+   xorg-libxext
+
+################################################################
+# # These packages cannot be installed by 2019.10 at this time #
+# $ANACONDA_BINDIR/conda install -y -c conda-forge \           #
+#    pygrib \                                                  #
+#    xorg-libsm \                                              #
+#    cis                                                       #
+################################################################
 
 # rtfw is the "replacement" for PyRTF. Install from pip
 # -----------------------------------------------------
@@ -257,7 +269,7 @@ else
    exit 8
 fi
 
-$ANACONDA_BINDIR/$PYTHON_EXEC -m pip install $RTF_PACKAGE pipenv ffnet
+$ANACONDA_BINDIR/$PYTHON_EXEC -m pip install $RTF_PACKAGE pipenv ffnet f90wrap
 
 # Finally pygrads is not even in pip, and only works for Python 2
 # ---------------------------------------------------------------
