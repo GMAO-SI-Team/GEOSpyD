@@ -245,7 +245,7 @@ $ANACONDA_BINDIR/conda install -y -c conda-forge iris pyhdf basemap \
    cmocean pip cdsapi xgboost gooey hpccm \
    xorg-libx11 xorg-kbproto xorg-xproto xorg-xextproto \
    xorg-libxrender xorg-renderproto xorg-libice \
-   xorg-libxext
+   xorg-libxext rasterio
 
 ################################################################
 # # These packages cannot be installed by 2019.10 at this time #
