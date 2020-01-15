@@ -5,7 +5,7 @@
 # -----
 
 EXAMPLE_PY_VERSION="3.7"
-EXAMPLE_ANA_VERSION="2019.03"
+EXAMPLE_ANA_VERSION="2019.10"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
@@ -291,12 +291,12 @@ find $ANACONDA_INSTALLDIR/lib -name 'exec_command.py' -print0 | xargs -0 $SED -i
 
 # Inject fix for Intel compiler in new numpy (1.16+) which uses subprocess now instead of exec_command.py
 # -------------------------------------------------------------------------------------------------------
-find $ANACONDA_INSTALLDIR/lib/python?.?/site-packages -name 'ccompiler.py' -print0 | xargs -0 $SED -i -e '/output = subprocess.check_output(version_cmd)/ s/version_cmd/version_cmd, stderr=subprocess.STDOUT/'
+#find $ANACONDA_INSTALLDIR/lib/python?.?/site-packages -name 'ccompiler.py' -print0 | xargs -0 $SED -i -e '/output = subprocess.check_output(version_cmd)/ s/version_cmd/version_cmd, stderr=subprocess.STDOUT/'
 
 # Edit matplotlibrc to use TkAgg as the default backend for matplotlib
 # as that is the only backend that seems supported on all systems
 # --------------------------------------------------------------------
-find $ANACONDA_INSTALLDIR/lib -name 'matplotlibrc' -print0 | xargs -0 $SED -i -e '/^backend/ s#\(backend *:\).*#\1 TkAgg#'
+find $ANACONDA_INSTALLDIR/lib -name 'matplotlibrc' -print0 | xargs -0 $SED -i -e '/^.*backend/ s%\(backend *:\).*%\1 TkAgg%'
 
 # Use conda to output list of packages installed
 # ----------------------------------------------
