@@ -269,7 +269,7 @@ else
    exit 8
 fi
 
-$ANACONDA_BINDIR/$PYTHON_EXEC -m pip install $RTF_PACKAGE pipenv ffnet f90wrap
+$ANACONDA_BINDIR/$PYTHON_EXEC -m pip install $RTF_PACKAGE pipenv ffnet f90wrap pymp-pypi
 
 # Finally pygrads is not even in pip, and only works for Python 2
 # ---------------------------------------------------------------
