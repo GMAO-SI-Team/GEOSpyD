@@ -269,7 +269,7 @@ else
    exit 8
 fi
 
-$ANACONDA_BINDIR/$PYTHON_EXEC -m pip install $RTF_PACKAGE pipenv ffnet pymp-pypi
+$ANACONDA_BINDIR/$PYTHON_EXEC -m pip install $RTF_PACKAGE pipenv ffnet pymp-pypi pypng
 
 if [[ $ARCH == Linux ]]
 then
