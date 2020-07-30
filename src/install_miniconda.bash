@@ -251,6 +251,7 @@ conda_install sockjs-tornado sphinx_rtd_theme django
 conda_install xgboost gooey pypng seaborn astropy
 conda_install fastcache get_terminal_size greenlet imageio jbig lzo
 conda_install mock sphinxcontrib pytables
+conda_install pydap
 
 if [[ "$PYTHON_MAJOR_VERSION" == "3" ]]
 then
