@@ -4,7 +4,7 @@
 # Usage
 # -----
 
-EXAMPLE_PY_VERSION="3.7"
+EXAMPLE_PY_VERSION="3.8"
 EXAMPLE_MINI_VERSION="4.7.12.1"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
@@ -208,24 +208,55 @@ MINICONDA_BINDIR=$MINICONDA_INSTALLDIR/bin
 # Now install regular conda packages
 # ----------------------------------
 
-CONDA_INSTALL="$MINICONDA_BINDIR/conda install -y"
+function conda_install {
+   CONDA_INSTALL_COMMAND="$MINICONDA_BINDIR/conda install -y"
 
-$CONDA_INSTALL conda
+   echo
+   echo "Now installing $*"
+   $CONDA_INSTALL_COMMAND $*
+   echo 
+}
 
-$CONDA_INSTALL numpy scipy numba
-$CONDA_INSTALL mkl mkl-service mkl_fft mkl_random tbb tbb4py intel-openmp
-$CONDA_INSTALL netcdf4 basemap matplotlib cartopy virtualenv pipenv configargparse
-$CONDA_INSTALL psycopg2 gdal xarray geotiff plotly
-$CONDA_INSTALL iris pyhdf pip biggus hpccm cdsapi
-$CONDA_INSTALL babel beautifulsoup4 colorama gmp jupyter jupyterlab
-$CONDA_INSTALL pygrib f90nml seawater mo_pack libmo_unpack
-$CONDA_INSTALL cmocean eofs pyspharm windspharm cubes
-$CONDA_INSTALL pyasn1 redis redis-py ujson mdp configobj argcomplete biopython
-$CONDA_INSTALL requests-toolbelt twine wxpython
-$CONDA_INSTALL sockjs-tornado sphinx_rtd_theme django
-$CONDA_INSTALL xgboost gooey pypng seaborn astropy
-$CONDA_INSTALL fastcache get_terminal_size greenlet imageio jbig lzo
-$CONDA_INSTALL mock sphinxcontrib pytables
+if [[ "$PYTHON_MAJOR_VERSION" == "2" ]]
+then
+   PROJ_LIB="proj4<6"
+else
+   PROJ_LIB="proj"
+fi
+
+conda_install conda
+
+if [[ "$PYTHON_MAJOR_VERSION" == "3" ]]
+then
+   # xESMF would be nice but it installs esmf! Need to test to make
+   # sure it doesn't infect geos
+   conda_install esmpy
+   conda_install xesmf
+   conda_install pytest
+   conda_install xgcm
+fi
+
+conda_install numpy scipy numba
+conda_install mkl mkl-service mkl_fft mkl_random tbb tbb4py intel-openmp
+conda_install netcdf4 basemap "$PROJ_LIB" matplotlib cartopy 
+conda_install virtualenv pipenv configargparse
+conda_install psycopg2 gdal xarray geotiff plotly
+conda_install iris pyhdf pip biggus hpccm cdsapi
+conda_install babel beautifulsoup4 colorama gmp jupyter jupyterlab
+conda_install pygrib f90nml seawater mo_pack libmo_unpack
+conda_install cmocean eofs pyspharm windspharm cubes
+conda_install pyasn1 redis redis-py ujson mdp configobj argcomplete biopython
+conda_install requests-toolbelt twine wxpython
+conda_install sockjs-tornado sphinx_rtd_theme django
+conda_install xgboost gooey pypng seaborn astropy
+conda_install fastcache get_terminal_size greenlet imageio jbig lzo
+conda_install mock sphinxcontrib pytables
+
+if [[ "$PYTHON_MAJOR_VERSION" == "3" ]]
+then
+   # esmpy installs mpi. We don't want any of those in the bin dir
+   /bin/rm -v $MINICONDA_INSTALLDIR/bin/mpi*
+fi
    
 # cis is too old; tries to downgrade matplotlib
 
@@ -238,14 +269,14 @@ then
    # -------------------------------
    if [[ "$PYTHON_MAJOR_VERSION" == "2" ]]
    then
-      $CONDA_INSTALL wsgiref
+      conda_install wsgiref
    fi
 fi
 
 # Install weird nc_time_axis package
 # ----------------------------------
 
-$CONDA_INSTALL -c conda-forge/label/renamed nc_time_axis
+conda_install -c conda-forge/label/renamed nc_time_axis
 
 # rtfw is the "replacement" for PyRTF. Install from pip
 # -----------------------------------------------------
@@ -264,6 +295,11 @@ fi
 PIP_INSTALL="$MINICONDA_BINDIR/$PYTHON_EXEC -m pip install"
 $PIP_INSTALL $RTF_PACKAGE pipenv ffnet pymp-pypi rasterio theano blaze h5py
 
+if [[ "$PYTHON_MAJOR_VERSION" == "3" ]]
+then
+   $PIP_INSTALL pycircleci
+fi
+
 if [[ $ARCH == Linux ]]
 then
    $PIP_INSTALL f90wrap
@@ -279,6 +315,10 @@ then
    cd $MINICONDA_SRCDIR/pygrads-1.1.9
 
    $MINICONDA_BINDIR/$PYTHON_EXEC setup.py install
+
+   # Inject code fix for spectral
+   # ----------------------------
+   find $MINICONDA_INSTALLDIR/lib -name 'gacm.py' -print0 | xargs -0 $SED -i -e '/cm.spectral,/ s/spectral/nipy_spectral/'
 fi
 
 cd $SCRIPTDIR
