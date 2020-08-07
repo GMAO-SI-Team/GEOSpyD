@@ -183,10 +183,21 @@ fi
 DATE=$(date +%F)
 MINICONDA_INSTALLDIR=$MINICONDA_DIR/${MINICONDA_VER}_py${PYTHON_VER}/$DATE
 
-INSTALLER=${MINICONDA_DISTVER}-${MINICONDA_VER}-${MINICONDA_ARCH}-${MACH}.sh
+if [[ "$MINICONDA_VER" == "latest" ]]
+then
+   CANONICAL_INSTALLER=${MINICONDA_DISTVER}-${MINICONDA_VER}-${MINICONDA_ARCH}-${MACH}.sh
+   DATED_INSTALLER=${MINICONDA_DISTVER}-${MINICONDA_VER}-${MINICONDA_ARCH}-${MACH}.${DATE}.sh
+else
+   PYTHON_VER_WITHOUT_DOT="${PYTHON_VER//./}"
+   CANONICAL_INSTALLER=${MINICONDA_DISTVER}-py${PYTHON_VER_WITHOUT_DOT}_${MINICONDA_VER}-${MINICONDA_ARCH}-${MACH}.sh
+fi
 
 echo "MINICONDA_SRCDIR     = $MINICONDA_SRCDIR"
-echo "INSTALLER           = $MINICONDA_SRCDIR/$INSTALLER"
+echo "CANONICAL_INSTALLER  = $MINICONDA_SRCDIR/$CANONICAL_INSTALLER"
+if [[ "$MINICONDA_VER" == "latest" ]]
+then
+   echo "DATED_INSTALLER      = $MINICONDA_SRCDIR/$DATED_INSTALLER"
+fi
 echo "Miniconda will be installed in $MINICONDA_INSTALLDIR"
 
 if [[ -d $MINICONDA_INSTALLDIR ]]
@@ -195,10 +206,18 @@ then
    exit 9
 fi
 
-if [[ ! -f $MINICONDA_SRCDIR/$INSTALLER ]]
+if [[ ! -f $MINICONDA_SRCDIR/$CANONICAL_INSTALLER ]]
 then
    REPO=https://repo.anaconda.com/miniconda
-   (cd $MINICONDA_SRCDIR; curl -O $REPO/$INSTALLER)
+   (cd $MINICONDA_SRCDIR; curl -O $REPO/$CANONICAL_INSTALLER)
+fi
+
+if [[ "$MINICONDA_VER" == "latest" ]]
+then
+   mv -v $MINICONDA_SRCDIR/$CANONICAL_INSTALLER $MINICONDA_SRCDIR/$DATED_INSTALLER
+   INSTALLER=$DATED_INSTALLER
+else
+   INSTALLER=$CANONICAL_INSTALLER
 fi
 
 bash $MINICONDA_SRCDIR/$INSTALLER -b -p $MINICONDA_INSTALLDIR
@@ -298,7 +317,7 @@ $PIP_INSTALL $RTF_PACKAGE pipenv ffnet pymp-pypi rasterio theano blaze h5py
 
 if [[ "$PYTHON_MAJOR_VERSION" == "3" ]]
 then
-   $PIP_INSTALL pycircleci
+   $PIP_INSTALL pycircleci metpy siphon
 fi
 
 if [[ $ARCH == Linux ]]
@@ -342,5 +361,6 @@ find $MINICONDA_INSTALLDIR/lib -name 'matplotlibrc' -print0 | xargs -0 $SED -i -
 cd $MINICONDA_INSTALLDIR
 ./bin/conda list --explicit > distribution_spec_file.txt
 ./bin/conda list > conda_list_packages.txt
+./bin/pip freeze > pip_freeze_packages.txt
 
 cd $SCRIPTDIR
