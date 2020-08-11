@@ -144,9 +144,9 @@ then
    exit 1
 fi
 
-# --------------------------
+# ---------------------------
 # Miniconda version variables
-# --------------------------
+# ---------------------------
 
 PYTHON_MAJOR_VERSION=${PYTHON_VER:0:1}
 if [[ "$PYTHON_MAJOR_VERSION" != "2" && "$PYTHON_MAJOR_VERSION" != "3" ]]
@@ -161,9 +161,9 @@ MINICONDA_DISTVER=Miniconda${PYTHON_MAJOR_VERSION}
 
 MINICONDA_SRCDIR=${SCRIPTDIR}/$MINICONDA_DISTVER
 
-# -----------------------------
+# ------------------------------
 # Set the Miniconda Architecture
-# -----------------------------
+# ------------------------------
 
 if [[ $ARCH == Darwin ]]
 then
@@ -172,9 +172,10 @@ else
    MINICONDA_ARCH=Linux
 fi
 
-#------------------------------------------------------
+# -----------------------------------------------------
 # Create the installtion directory if it does not exist
-#------------------------------------------------------
+# -----------------------------------------------------
+
 if [ ! -d "$MINICONDA_DIR" ]
 then
    mkdir -p $MINICONDA_DIR
@@ -220,6 +221,26 @@ else
    INSTALLER=$CANONICAL_INSTALLER
 fi
 
+# Override user's .condarc for safety
+# -----------------------------------
+
+if [[ -f ~/.condarc ]]
+then
+   cp -v ~/.condarc ~/.condarc-SAVE
+fi
+
+cat << EOF > ~/.condarc
+# Temporary condarc from install_miniconda.bash
+channels:
+  - conda-forge
+  - defaults
+channel_priority: strict
+EOF
+
+# -----------------
+# Install Miniconda
+# -----------------
+
 bash $MINICONDA_SRCDIR/$INSTALLER -b -p $MINICONDA_INSTALLDIR
 
 MINICONDA_BINDIR=$MINICONDA_INSTALLDIR/bin
@@ -247,8 +268,6 @@ conda_install conda
 
 if [[ "$PYTHON_MAJOR_VERSION" == "3" ]]
 then
-   # xESMF would be nice but it installs esmf! Need to test to make
-   # sure it doesn't infect geos
    conda_install esmpy
    conda_install xesmf
    conda_install pytest
@@ -362,5 +381,14 @@ cd $MINICONDA_INSTALLDIR
 ./bin/conda list --explicit > distribution_spec_file.txt
 ./bin/conda list > conda_list_packages.txt
 ./bin/pip freeze > pip_freeze_packages.txt
+
+# Restore User's .condarc
+# -----------------------
+if [[ -f ~/.condarc-SAVE ]]
+then
+   mv -v ~/.condarc-SAVE ~/.condarc
+else
+   rm -v ~/.condarc
+fi
 
 cd $SCRIPTDIR
