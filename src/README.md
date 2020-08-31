@@ -1,14 +1,10 @@
 In order to use the install script do (for example):
 
 ```
-$ ./install_anaconda.bash --python_version 3.7 --anaconda_version 2019.03 --prefix /opt/GEOSpyD
+./install_miniconda.bash --python_version 3.8 --miniconda_version 4.8.3 --prefix /opt/GEOSpyD
 ```
 
-which would create an install in:
-
+will create an install at:
 ```
-/opt/GEOSpyD/2019.03_py3.7/2019-04-12
+/opt/GEOSpyD/4.8.3_py3.8/2020-08-31
 ```
-
-where the end of the directory is because we decorate installs with the
-date.
