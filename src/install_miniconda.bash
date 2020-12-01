@@ -5,7 +5,7 @@
 # -----
 
 EXAMPLE_PY_VERSION="3.8"
-EXAMPLE_MINI_VERSION="4.8.3"
+EXAMPLE_MINI_VERSION="4.9.2"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
@@ -160,6 +160,23 @@ PYTHON_EXEC=python${PYTHON_MAJOR_VERSION}
 MINICONDA_DISTVER=Miniconda${PYTHON_MAJOR_VERSION}
 
 MINICONDA_SRCDIR=${SCRIPTDIR}/$MINICONDA_DISTVER
+
+# --------------------------------------------------
+# Test if we are in Python3-only Miniconda territory
+# --------------------------------------------------
+
+# https://unix.stackexchange.com/a/285928
+LAST_SUPPORTED_PYTHON2="4.8.3"
+LAST_SUPPORTED_PYTHON2_PLUS_1="4.8.4"
+if [ "${PYTHON_MAJOR_VERSION}" == "2" ]
+then
+   if [ "$(printf '%s\n' "$LAST_SUPPORTED_PYTHON2_PLUS_1" "$MINICONDA_VER" | sort -V | head -n1)" = "$LAST_SUPPORTED_PYTHON2_PLUS_1" ]
+   then
+      echo "Miniconda only supports Python2 up to version ${LAST_SUPPORTED_PYTHON2}."
+      echo "The passed-in version ${MINICONDA_VER} is larger than ${LAST_SUPPORTED_PYTHON2}"
+      exit 2
+   fi
+fi
 
 # ------------------------------
 # Set the Miniconda Architecture
