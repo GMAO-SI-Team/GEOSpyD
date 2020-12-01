@@ -293,6 +293,9 @@ conda_install pydap
 
 if [[ "$PYTHON_MAJOR_VERSION" == "3" ]]
 then
+   # This is only on python 3
+   conda_install timezonefinder
+
    # esmpy installs mpi. We don't want any of those in the bin dir
    /bin/rm -v $MINICONDA_INSTALLDIR/bin/mpi*
 fi
