@@ -289,6 +289,7 @@ then
    conda_install xesmf
    conda_install pytest
    conda_install xgcm
+   conda_install s3fs
 fi
 
 conda_install numpy scipy numba
