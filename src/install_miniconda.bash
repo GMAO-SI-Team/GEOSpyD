@@ -4,12 +4,12 @@
 # Usage
 # -----
 
-EXAMPLE_PY_VERSION="3.8"
+EXAMPLE_PY_VERSION="3.9"
 EXAMPLE_MINI_VERSION="4.9.2"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
-   echo "Usage: $0 --python_version <python version> --miniconda_version <miniconda_version> --prefix <prefix>"
+   echo "Usage: $0 --python_version <python version> --miniconda_version <miniconda_version> --prefix <prefix> [--mamba]"
    echo ""
    echo "   Required arguments:"
    echo "      --python_version <python version> (e.g., ${EXAMPLE_PY_VERSION})"
@@ -17,6 +17,7 @@ usage() {
    echo "      --prefix <full path to installation directory> (e.g, ${EXAMPLE_INSTALLDIR})"
    echo ""
    echo "   Optional arguments:"
+   echo "      --mamba: Use mamba installer"
    echo "      --help: Print this message"
    echo ""
    echo "  NOTE: This script installs within ${EXAMPLE_INSTALLDIR} with a path based on:"
@@ -95,6 +96,8 @@ fi
 # Command line arguments
 # ----------------------
 
+USE_MAMBA=FALSE
+
 while [[ -n "$1" ]]
 do
    case "$1" in
@@ -104,6 +107,10 @@ do
          ;;
       --miniconda_version)
          MINICONDA_VER=$2
+         shift
+         ;;
+      --mamba)
+         USE_MAMBA=TRUE
          shift
          ;;
       --prefix)
@@ -238,14 +245,16 @@ else
    INSTALLER=$CANONICAL_INSTALLER
 fi
 
-# Override user's .condarc for safety
-# -----------------------------------
+# NOTE: We have to use strict conda-forge channel
+# -----------------------------------------------
 
+# Save user's .condarc for safety
 if [[ -f ~/.condarc ]]
 then
    cp -v ~/.condarc ~/.condarc-SAVE
 fi
 
+# Now create the good one (we restore the old one at the end)
 cat << EOF > ~/.condarc
 # Temporary condarc from install_miniconda.bash
 channels:
@@ -269,8 +278,17 @@ function conda_install {
    CONDA_INSTALL_COMMAND="$MINICONDA_BINDIR/conda install -y"
 
    echo
-   echo "Now installing $*"
+   echo "(conda) Now installing $*"
    $CONDA_INSTALL_COMMAND $*
+   echo 
+}
+
+function mamba_install {
+   MAMBA_INSTALL_COMMAND="$MINICONDA_BINDIR/mamba install -y"
+
+   echo
+   echo "(mamba) Now installing $*"
+   $MAMBA_INSTALL_COMMAND $*
    echo 
 }
 
@@ -283,42 +301,53 @@ fi
 
 conda_install conda
 
-if [[ "$PYTHON_MAJOR_VERSION" == "3" ]]
+if [[ "$USE_MAMBA" == "TRUE" ]]
 then
-   conda_install esmpy
-   conda_install xesmf
-   conda_install pytest
-   conda_install xgcm
-   conda_install s3fs
+   conda install mamba
+   PACKAGE_INSTALL=mamba_install
+else
+   PACKAGE_INSTALL=conda_install
 fi
 
-conda_install numpy scipy numba
-conda_install mkl mkl-service mkl_fft mkl_random tbb tbb4py intel-openmp
-conda_install netcdf4 basemap "$PROJ_LIB" matplotlib cartopy 
-conda_install virtualenv pipenv configargparse
-conda_install psycopg2 gdal xarray geotiff plotly
-conda_install iris pyhdf pip biggus hpccm cdsapi
-conda_install babel beautifulsoup4 colorama gmp jupyter jupyterlab
-conda_install pygrib f90nml seawater mo_pack libmo_unpack
-conda_install cmocean eofs pyspharm windspharm cubes
-conda_install pyasn1 redis redis-py ujson mdp configobj argcomplete biopython
-conda_install requests-toolbelt twine wxpython
-conda_install sockjs-tornado sphinx_rtd_theme django
-conda_install xgboost gooey pypng seaborn astropy
-conda_install fastcache get_terminal_size greenlet imageio jbig lzo
-conda_install mock sphinxcontrib pytables
-conda_install pydap
+if [[ "$PYTHON_MAJOR_VERSION" == "3" ]]
+then
+   $PACKAGE_INSTALL esmpy
+   $PACKAGE_INSTALL xesmf
+   $PACKAGE_INSTALL pytest
+   $PACKAGE_INSTALL xgcm
+   $PACKAGE_INSTALL s3fs boto3
+fi
+
+$PACKAGE_INSTALL numpy scipy numba
+$PACKAGE_INSTALL mkl mkl-service mkl_fft mkl_random tbb tbb4py intel-openmp
+$PACKAGE_INSTALL netcdf4 basemap "$PROJ_LIB" matplotlib cartopy 
+$PACKAGE_INSTALL virtualenv pipenv configargparse
+$PACKAGE_INSTALL psycopg2 gdal xarray geotiff plotly
+$PACKAGE_INSTALL iris pyhdf pip biggus hpccm cdsapi
+$PACKAGE_INSTALL babel beautifulsoup4 colorama gmp jupyter jupyterlab
+$PACKAGE_INSTALL pygrib f90nml seawater mo_pack libmo_unpack
+$PACKAGE_INSTALL cmocean eofs pyspharm windspharm cubes
+$PACKAGE_INSTALL pyasn1 redis redis-py ujson mdp configobj argcomplete biopython
+$PACKAGE_INSTALL requests-toolbelt twine wxpython
+$PACKAGE_INSTALL sockjs-tornado sphinx_rtd_theme django
+$PACKAGE_INSTALL xgboost gooey pypng seaborn astropy
+$PACKAGE_INSTALL fastcache get_terminal_size greenlet imageio jbig lzo
+$PACKAGE_INSTALL mock sphinxcontrib pytables
+$PACKAGE_INSTALL pydap
 
 if [[ "$PYTHON_MAJOR_VERSION" == "3" ]]
 then
    # This is only on python 3
-   conda_install timezonefinder
+   $PACKAGE_INSTALL timezonefinder
+fi
 
-   # esmpy installs mpi. We don't want any of those in the bin dir
+# esmpy installs mpi. We don't want any of those in the bin dir
+if [[ "$PYTHON_MAJOR_VERSION" == "3" ]]
+then
    /bin/rm -v $MINICONDA_INSTALLDIR/bin/mpi*
 fi
    
-# cis is too old; tries to downgrade matplotlib
+# We used to install cis, but it is too old; tries to downgrade matplotlib
 
 # Many packages on Miniconda have no macOS or noarch version
 # ---------------------------------------------------------
@@ -329,14 +358,14 @@ then
    # -------------------------------
    if [[ "$PYTHON_MAJOR_VERSION" == "2" ]]
    then
-      conda_install wsgiref
+      $PACKAGE_INSTALL wsgiref
    fi
 fi
 
 # Install weird nc_time_axis package
 # ----------------------------------
 
-conda_install -c conda-forge/label/renamed nc_time_axis
+$PACKAGE_INSTALL -c conda-forge/label/renamed nc_time_axis
 
 # rtfw is the "replacement" for PyRTF. Install from pip
 # -----------------------------------------------------
@@ -386,10 +415,6 @@ cd $SCRIPTDIR
 # Inject Joe Stassi's f2py shell fix into numpy
 # ---------------------------------------------
 find $MINICONDA_INSTALLDIR/lib -name 'exec_command.py' -print0 | xargs -0 $SED -i -e 's#^\( *\)use_shell = False#&\n\1command.insert(1, "-f")#'
-
-# Inject fix for Intel compiler in new numpy (1.16+) which uses subprocess now instead of exec_command.py
-# -------------------------------------------------------------------------------------------------------
-#find $MINICONDA_INSTALLDIR/lib/python?.?/site-packages -name 'ccompiler.py' -print0 | xargs -0 $SED -i -e '/output = subprocess.check_output(version_cmd)/ s/version_cmd/version_cmd, stderr=subprocess.STDOUT/'
 
 # Edit matplotlibrc to use TkAgg as the default backend for matplotlib
 # as that is the only backend that seems supported on all systems
