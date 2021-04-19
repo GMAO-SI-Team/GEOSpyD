@@ -303,7 +303,7 @@ conda_install conda
 
 if [[ "$USE_MAMBA" == "TRUE" ]]
 then
-   conda install mamba
+   conda_install mamba
    PACKAGE_INSTALL=mamba_install
 else
    PACKAGE_INSTALL=conda_install
