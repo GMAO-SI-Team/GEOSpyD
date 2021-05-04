@@ -386,7 +386,7 @@ $PIP_INSTALL $RTF_PACKAGE pipenv ffnet pymp-pypi rasterio theano blaze h5py
 
 if [[ "$PYTHON_MAJOR_VERSION" == "3" ]]
 then
-   $PIP_INSTALL pycircleci metpy siphon questionary
+   $PIP_INSTALL pycircleci metpy siphon questionary xgrads
 fi
 
 if [[ $ARCH == Linux ]]
