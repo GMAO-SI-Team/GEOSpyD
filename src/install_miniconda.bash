@@ -339,6 +339,7 @@ if [[ "$PYTHON_MAJOR_VERSION" == "3" ]]
 then
    # This is only on python 3
    $PACKAGE_INSTALL timezonefinder
+   $PACKAGE_INSTALL cython pythran
 fi
 
 # esmpy installs mpi. We don't want any of those in the bin dir
