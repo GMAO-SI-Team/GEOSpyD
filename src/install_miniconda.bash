@@ -56,19 +56,6 @@ ARCH=$(uname -s)
 MACH=$(uname -m)
 NODE=$(uname -n)
 
-if [[ $NODE =~ discover* || $NODE =~ borg* ]]
-then
-   SITE=NCCS
-elif [[ $NODE =~ pfe* || $NODE =~ r[0-9]*i[0-9]*n[0-9]* ]]
-then
-   SITE=NAS
-elif [[ -d /ford1/share/gmao_SIteam && -d /ford1/local && $ARCH == Linux ]]
-then
-   SITE=GMAO.desktop
-else
-   SITE=UNKNOWN
-fi
-
 # ------------------------------
 # Define an in-place sed command
 # Because Mac sed is stupid old,
