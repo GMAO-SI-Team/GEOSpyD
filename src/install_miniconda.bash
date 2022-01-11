@@ -5,11 +5,11 @@
 # -----
 
 EXAMPLE_PY_VERSION="3.9"
-EXAMPLE_MINI_VERSION="4.9.2"
+EXAMPLE_MINI_VERSION="4.10.3"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
-   echo "Usage: $0 --python_version <python version> --miniconda_version <miniconda_version> --prefix <prefix> [--mamba]"
+   echo "Usage: $0 --python_version <python version> --miniconda_version <miniconda_version> --prefix <prefix> [--conda]"
    echo ""
    echo "   Required arguments:"
    echo "      --python_version <python version> (e.g., ${EXAMPLE_PY_VERSION})"
@@ -17,7 +17,7 @@ usage() {
    echo "      --prefix <full path to installation directory> (e.g, ${EXAMPLE_INSTALLDIR})"
    echo ""
    echo "   Optional arguments:"
-   echo "      --mamba: Use mamba installer"
+   echo "      --conda: Use conda installer"
    echo "      --help: Print this message"
    echo ""
    echo "  NOTE: This script installs within ${EXAMPLE_INSTALLDIR} with a path based on:"
@@ -83,7 +83,7 @@ fi
 # Command line arguments
 # ----------------------
 
-USE_MAMBA=FALSE
+USE_CONDA=FALSE
 
 while [[ -n "$1" ]]
 do
@@ -96,8 +96,8 @@ do
          MINICONDA_VER=$2
          shift
          ;;
-      --mamba)
-         USE_MAMBA=TRUE
+      --conda)
+         USE_CONDA=TRUE
          shift
          ;;
       --prefix)
@@ -288,12 +288,12 @@ fi
 
 conda_install conda
 
-if [[ "$USE_MAMBA" == "TRUE" ]]
+if [[ "$USE_CONDA" == "TRUE" ]]
 then
+   PACKAGE_INSTALL=conda_install
+else
    conda_install mamba
    PACKAGE_INSTALL=mamba_install
-else
-   PACKAGE_INSTALL=conda_install
 fi
 
 if [[ "$PYTHON_MAJOR_VERSION" == "3" ]]
@@ -370,7 +370,7 @@ else
 fi
 
 PIP_INSTALL="$MINICONDA_BINDIR/$PYTHON_EXEC -m pip install"
-$PIP_INSTALL $RTF_PACKAGE pipenv ffnet pymp-pypi rasterio theano blaze h5py
+$PIP_INSTALL $RTF_PACKAGE pipenv pymp-pypi rasterio theano blaze h5py
 
 if [[ "$PYTHON_MAJOR_VERSION" == "3" ]]
 then
@@ -397,6 +397,9 @@ then
    # ----------------------------
    find $MINICONDA_INSTALLDIR/lib -name 'gacm.py' -print0 | xargs -0 $SED -i -e '/cm.spectral,/ s/spectral/nipy_spectral/'
 fi
+
+# ffnet requires a Fortran compiler. This sometimes isn't available
+$PIP_INSTALL ffnet
 
 cd $SCRIPTDIR
 
