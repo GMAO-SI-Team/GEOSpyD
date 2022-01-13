@@ -383,14 +383,24 @@ then
    $PIP_INSTALL f90wrap
 fi
 
-# Finally pygrads is not even in pip, and only works for Python 2
-# ---------------------------------------------------------------
+# Finally pygrads is not in pip
+# -----------------------------
 
 if [[ "$PYTHON_MAJOR_VERSION" == "2" ]]
 then
    tar xf $MINICONDA_SRCDIR/pygrads-1.1.9.tar.gz -C $MINICONDA_SRCDIR
 
    cd $MINICONDA_SRCDIR/pygrads-1.1.9
+
+   $MINICONDA_BINDIR/$PYTHON_EXEC setup.py install
+
+   # Inject code fix for spectral
+   # ----------------------------
+   find $MINICONDA_INSTALLDIR/lib -name 'gacm.py' -print0 | xargs -0 $SED -i -e '/cm.spectral,/ s/spectral/nipy_spectral/'
+else
+   tar xf $MINICONDA_SRCDIR/pygrads-3.0.b1.tar.gz -C $MINICONDA_SRCDIR
+
+   cd $MINICONDA_SRCDIR/pygrads-3.0.b1
 
    $MINICONDA_BINDIR/$PYTHON_EXEC setup.py install
 
