@@ -321,6 +321,7 @@ $PACKAGE_INSTALL xgboost gooey pypng seaborn astropy
 $PACKAGE_INSTALL fastcache get_terminal_size greenlet imageio jbig lzo
 $PACKAGE_INSTALL mock sphinxcontrib pytables
 $PACKAGE_INSTALL pydap
+$PACKAGE_INSTALL gsw
 
 if [[ "$PYTHON_MAJOR_VERSION" == "3" ]]
 then
@@ -399,7 +400,10 @@ then
 fi
 
 # ffnet requires a Fortran compiler. This sometimes isn't available
-$PIP_INSTALL ffnet
+if [[ $ARCH != Darwin ]]
+then
+   $PIP_INSTALL ffnet
+fi
 
 cd $SCRIPTDIR
 
