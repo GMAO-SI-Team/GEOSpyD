@@ -74,7 +74,7 @@ then
       #echo "GNU sed from a packager like Homebrew:"
       #echo "  brew install gnu-sed"
       SED="$(command -v sed) -i.macbak "
-   fi 
+   fi
 else
    SED="$(command -v sed) -i "
 fi
@@ -267,7 +267,7 @@ function conda_install {
    echo
    echo "(conda) Now installing $*"
    $CONDA_INSTALL_COMMAND $*
-   echo 
+   echo
 }
 
 function mamba_install {
@@ -276,7 +276,7 @@ function mamba_install {
    echo
    echo "(mamba) Now installing $*"
    $MAMBA_INSTALL_COMMAND $*
-   echo 
+   echo
 }
 
 if [[ "$PYTHON_MAJOR_VERSION" == "2" ]]
@@ -307,7 +307,7 @@ fi
 
 $PACKAGE_INSTALL numpy scipy numba
 $PACKAGE_INSTALL mkl mkl-service mkl_fft mkl_random tbb tbb4py intel-openmp
-$PACKAGE_INSTALL netcdf4 basemap "$PROJ_LIB" matplotlib cartopy 
+$PACKAGE_INSTALL netcdf4 basemap "$PROJ_LIB" matplotlib cartopy
 $PACKAGE_INSTALL virtualenv pipenv configargparse
 $PACKAGE_INSTALL psycopg2 gdal xarray geotiff plotly
 $PACKAGE_INSTALL iris pyhdf pip biggus hpccm cdsapi
@@ -327,7 +327,13 @@ if [[ "$PYTHON_MAJOR_VERSION" == "3" ]]
 then
    # This is only on python 3
    $PACKAGE_INSTALL timezonefinder
-   $PACKAGE_INSTALL cython pythran
+   $PACKAGE_INSTALL cython
+
+   # Only install pythran on linux. On mac it brings in an old clang
+   if [[ $MINICONDA_ARCH == Linux ]]
+   then
+      $PACKAGE_INSTALL pythran
+   fi
 fi
 
 # esmpy installs mpi. We don't want any of those in the bin dir
@@ -335,7 +341,7 @@ if [[ "$PYTHON_MAJOR_VERSION" == "3" ]]
 then
    /bin/rm -v $MINICONDA_INSTALLDIR/bin/mpi*
 fi
-   
+
 # We used to install cis, but it is too old; tries to downgrade matplotlib
 
 # Many packages on Miniconda have no macOS or noarch version
