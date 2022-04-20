@@ -328,6 +328,7 @@ then
    # This is only on python 3
    $PACKAGE_INSTALL timezonefinder
    $PACKAGE_INSTALL cython
+   $PACKAGE_INSTALL wordcloud
 
    # Only install pythran on linux. On mac it brings in an old clang
    if [[ $MINICONDA_ARCH == Linux ]]
@@ -382,6 +383,7 @@ $PIP_INSTALL $RTF_PACKAGE pipenv pymp-pypi rasterio theano blaze h5py
 if [[ "$PYTHON_MAJOR_VERSION" == "3" ]]
 then
    $PIP_INSTALL pycircleci metpy siphon questionary xgrads
+   $PIP_INSTALL ruamel.yaml
 fi
 
 if [[ $ARCH == Linux ]]

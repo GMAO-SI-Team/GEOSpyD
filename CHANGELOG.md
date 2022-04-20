@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Explicit Conda Packages
+  - wordcloud
+
+- Explicit Pip Packages
+  - ruamel.yaml
+
 ### Changed
 
 - Only install `pythran` on Linux
