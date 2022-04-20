@@ -143,10 +143,10 @@ fi
 # ---------------------------
 
 PYTHON_MAJOR_VERSION=${PYTHON_VER:0:1}
-if [[ "$PYTHON_MAJOR_VERSION" != "2" && "$PYTHON_MAJOR_VERSION" != "3" ]]
+if [[ "$PYTHON_MAJOR_VERSION" != "3" ]]
 then
    echo "Python version $PYTHON_VER implies Python major version $PYTHON_MAJOR_VERSION"
-   echo "This script only supports Python 2 or 3"
+   echo "This script only supports Python 3"
    exit 2
 fi
 PYTHON_EXEC=python${PYTHON_MAJOR_VERSION}
@@ -154,23 +154,6 @@ PYTHON_EXEC=python${PYTHON_MAJOR_VERSION}
 MINICONDA_DISTVER=Miniconda${PYTHON_MAJOR_VERSION}
 
 MINICONDA_SRCDIR=${SCRIPTDIR}/$MINICONDA_DISTVER
-
-# --------------------------------------------------
-# Test if we are in Python3-only Miniconda territory
-# --------------------------------------------------
-
-# https://unix.stackexchange.com/a/285928
-LAST_SUPPORTED_PYTHON2="4.8.3"
-LAST_SUPPORTED_PYTHON2_PLUS_1="4.8.4"
-if [ "${PYTHON_MAJOR_VERSION}" == "2" ]
-then
-   if [ "$(printf '%s\n' "$LAST_SUPPORTED_PYTHON2_PLUS_1" "$MINICONDA_VER" | sort -V | head -n1)" = "$LAST_SUPPORTED_PYTHON2_PLUS_1" ]
-   then
-      echo "Miniconda only supports Python2 up to version ${LAST_SUPPORTED_PYTHON2}."
-      echo "The passed-in version ${MINICONDA_VER} is larger than ${LAST_SUPPORTED_PYTHON2}"
-      exit 2
-   fi
-fi
 
 # ------------------------------
 # Set the Miniconda Architecture
@@ -279,13 +262,6 @@ function mamba_install {
    echo
 }
 
-if [[ "$PYTHON_MAJOR_VERSION" == "2" ]]
-then
-   PROJ_LIB="proj4<6"
-else
-   PROJ_LIB="proj"
-fi
-
 conda_install conda
 
 if [[ "$USE_CONDA" == "TRUE" ]]
@@ -296,18 +272,19 @@ else
    PACKAGE_INSTALL=mamba_install
 fi
 
-if [[ "$PYTHON_MAJOR_VERSION" == "3" ]]
-then
-   $PACKAGE_INSTALL esmpy
-   $PACKAGE_INSTALL xesmf
-   $PACKAGE_INSTALL pytest
-   $PACKAGE_INSTALL xgcm
-   $PACKAGE_INSTALL s3fs boto3
-fi
+# --------------------
+# CONDA/MAMBA PACKAGES
+# --------------------
+
+$PACKAGE_INSTALL esmpy
+$PACKAGE_INSTALL xesmf
+$PACKAGE_INSTALL pytest
+$PACKAGE_INSTALL xgcm
+$PACKAGE_INSTALL s3fs boto3
 
 $PACKAGE_INSTALL numpy scipy numba
 $PACKAGE_INSTALL mkl mkl-service mkl_fft mkl_random tbb tbb4py intel-openmp
-$PACKAGE_INSTALL netcdf4 basemap "$PROJ_LIB" matplotlib cartopy
+$PACKAGE_INSTALL netcdf4 basemap proj matplotlib cartopy
 $PACKAGE_INSTALL virtualenv pipenv configargparse
 $PACKAGE_INSTALL psycopg2 gdal xarray geotiff plotly
 $PACKAGE_INSTALL iris pyhdf pip biggus hpccm cdsapi
@@ -323,105 +300,53 @@ $PACKAGE_INSTALL mock sphinxcontrib pytables
 $PACKAGE_INSTALL pydap
 $PACKAGE_INSTALL gsw
 
-if [[ "$PYTHON_MAJOR_VERSION" == "3" ]]
-then
-   # This is only on python 3
-   $PACKAGE_INSTALL timezonefinder
-   $PACKAGE_INSTALL cython
-   $PACKAGE_INSTALL wordcloud
+$PACKAGE_INSTALL timezonefinder
+$PACKAGE_INSTALL cython
+$PACKAGE_INSTALL wordcloud
 
-   # Only install pythran on linux. On mac it brings in an old clang
-   if [[ $MINICONDA_ARCH == Linux ]]
-   then
-      $PACKAGE_INSTALL pythran
-   fi
+# Only install pythran on linux. On mac it brings in an old clang
+if [[ $MINICONDA_ARCH == Linux ]]
+then
+   $PACKAGE_INSTALL pythran
 fi
 
 # esmpy installs mpi. We don't want any of those in the bin dir
-if [[ "$PYTHON_MAJOR_VERSION" == "3" ]]
-then
-   /bin/rm -v $MINICONDA_INSTALLDIR/bin/mpi*
-fi
+/bin/rm -v $MINICONDA_INSTALLDIR/bin/mpi*
 
 # We used to install cis, but it is too old; tries to downgrade matplotlib
-
-# Many packages on Miniconda have no macOS or noarch version
-# ---------------------------------------------------------
-
-if [[ $MINICONDA_ARCH == Linux ]]
-then
-   # wgsiref is part of Python 3 now
-   # -------------------------------
-   if [[ "$PYTHON_MAJOR_VERSION" == "2" ]]
-   then
-      $PACKAGE_INSTALL wsgiref
-   fi
-fi
 
 # Install weird nc_time_axis package
 # ----------------------------------
 
 $PACKAGE_INSTALL -c conda-forge/label/renamed nc_time_axis
 
-# rtfw is the "replacement" for PyRTF. Install from pip
-# -----------------------------------------------------
-
-if [[ "$PYTHON_MAJOR_VERSION" == "2" ]]
-then
-   RTF_PACKAGE=rtfw
-elif [[ "$PYTHON_MAJOR_VERSION" == "3" ]]
-then
-   RTF_PACKAGE=PyRTF3
-else
-   echo "Should not be here"
-   exit 8
-fi
+# ------------
+# PIP PACKAGES
+# ------------
 
 PIP_INSTALL="$MINICONDA_BINDIR/$PYTHON_EXEC -m pip install"
-$PIP_INSTALL $RTF_PACKAGE pipenv pymp-pypi rasterio theano blaze h5py
+$PIP_INSTALL PyRTF3 pipenv pymp-pypi rasterio theano blaze h5py
+$PIP_INSTALL pycircleci metpy siphon questionary xgrads
+$PIP_INSTALL ruamel.yaml
 
-if [[ "$PYTHON_MAJOR_VERSION" == "3" ]]
-then
-   $PIP_INSTALL pycircleci metpy siphon questionary xgrads
-   $PIP_INSTALL ruamel.yaml
-fi
-
+# some packages require a Fortran compiler. This sometimes isn't available
 if [[ $ARCH == Linux ]]
 then
    $PIP_INSTALL f90wrap
+   $PIP_INSTALL ffnet
 fi
 
 # Finally pygrads is not in pip
 # -----------------------------
+tar xf $MINICONDA_SRCDIR/pygrads-3.0.b1.tar.gz -C $MINICONDA_SRCDIR
 
-if [[ "$PYTHON_MAJOR_VERSION" == "2" ]]
-then
-   tar xf $MINICONDA_SRCDIR/pygrads-1.1.9.tar.gz -C $MINICONDA_SRCDIR
+cd $MINICONDA_SRCDIR/pygrads-3.0.b1
 
-   cd $MINICONDA_SRCDIR/pygrads-1.1.9
+$MINICONDA_BINDIR/$PYTHON_EXEC setup.py install
 
-   $MINICONDA_BINDIR/$PYTHON_EXEC setup.py install
-
-   # Inject code fix for spectral
-   # ----------------------------
-   find $MINICONDA_INSTALLDIR/lib -name 'gacm.py' -print0 | xargs -0 $SED -i -e '/cm.spectral,/ s/spectral/nipy_spectral/'
-else
-   tar xf $MINICONDA_SRCDIR/pygrads-3.0.b1.tar.gz -C $MINICONDA_SRCDIR
-
-   cd $MINICONDA_SRCDIR/pygrads-3.0.b1
-
-   $MINICONDA_BINDIR/$PYTHON_EXEC setup.py install
-
-   # Inject code fix for spectral
-   # ----------------------------
-   find $MINICONDA_INSTALLDIR/lib -name 'gacm.py' -print0 | xargs -0 $SED -i -e '/cm.spectral,/ s/spectral/nipy_spectral/'
-fi
-
-# ffnet requires a Fortran compiler. This sometimes isn't available
-if [[ $ARCH != Darwin ]]
-then
-   $PIP_INSTALL ffnet
-fi
+# Inject code fix for spectral
+# ----------------------------
+find $MINICONDA_INSTALLDIR/lib -name 'gacm.py' -print0 | xargs -0 $SED -i -e '/cm.spectral,/ s/spectral/nipy_spectral/'
 
 cd $SCRIPTDIR
 

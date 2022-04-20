@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- Removed the anaconda install scripts
+- Removed support for Python 2
+
 ### Deprecated
 
 ## [4.10.3] - 2022-01-13
