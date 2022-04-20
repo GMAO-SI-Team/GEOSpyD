@@ -1,3 +1,6 @@
 .ipynb_checkpoints/
 *.log
 *.txt
+Anaconda2/
+Anaconda3/
+Miniconda2/
