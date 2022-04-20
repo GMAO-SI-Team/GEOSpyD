@@ -5,7 +5,7 @@
 # -----
 
 EXAMPLE_PY_VERSION="3.9"
-EXAMPLE_MINI_VERSION="4.10.3"
+EXAMPLE_MINI_VERSION="4.11.0"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
@@ -303,6 +303,7 @@ $PACKAGE_INSTALL gsw
 $PACKAGE_INSTALL timezonefinder
 $PACKAGE_INSTALL cython
 $PACKAGE_INSTALL wordcloud
+$PACKAGE_INSTALL zarr
 
 # Only install pythran on linux. On mac it brings in an old clang
 if [[ $MINICONDA_ARCH == Linux ]]
@@ -328,6 +329,7 @@ PIP_INSTALL="$MINICONDA_BINDIR/$PYTHON_EXEC -m pip install"
 $PIP_INSTALL PyRTF3 pipenv pymp-pypi rasterio theano blaze h5py
 $PIP_INSTALL pycircleci metpy siphon questionary xgrads
 $PIP_INSTALL ruamel.yaml
+$PIP_INSTALL tensorflow evidential-deep-learning
 
 # some packages require a Fortran compiler. This sometimes isn't available
 if [[ $ARCH == Linux ]]

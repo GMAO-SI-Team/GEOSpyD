@@ -13,9 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Explicit Conda Packages
   - wordcloud
+  - zarr
 
 - Explicit Pip Packages
   - ruamel.yaml
+  - tensorflow
+  - evidential-deep-learning
 
 ### Changed
 
