@@ -345,6 +345,7 @@ $PIP_INSTALL PyRTF3 pipenv pymp-pypi rasterio theano blaze h5py
 $PIP_INSTALL pycircleci metpy siphon questionary xgrads
 $PIP_INSTALL ruamel.yaml
 $PIP_INSTALL tensorflow evidential-deep-learning
+$PIP_INSTALL yaplon
 
 # some packages require a Fortran compiler. This sometimes isn't available
 if [[ $ARCH == Linux ]]
