@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Only install `pythran` on Linux
+- Instead of removing the `mpi*` files in `bin`, we now rename to `esmf-mpi*`
 
 ### Removed
 

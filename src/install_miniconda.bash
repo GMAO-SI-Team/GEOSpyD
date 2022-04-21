@@ -312,13 +312,28 @@ then
 fi
 
 # esmpy installs mpi. We don't want any of those in the bin dir
-/bin/rm -v $MINICONDA_INSTALLDIR/bin/mpi*
+# so we rename and relink. First we rename the files:
 
-# We used to install cis, but it is too old; tries to downgrade matplotlib
+cd $MINICONDA_INSTALLDIR/bin
+
+/bin/mv -v mpicc         esmf-mpicc
+/bin/mv -v mpicxx        esmf-mpicxx
+/bin/mv -v mpiexec.hydra esmf-mpiexec.hydra
+/bin/mv -v mpifort       esmf-mpifort
+/bin/mv -v mpichversion  esmf-mpichversion
+/bin/mv -v mpivars       esmf-mpivars
+
+# Now we have to handle the symlinks
+/bin/rm -v mpic++  && /bin/ln -sv esmf-mpicxx        esmf-mpic++
+/bin/rm -v mpiexec && /bin/ln -sv esmf-mpiexec.hydra esmf-mpiexec
+/bin/rm -v mpirun  && /bin/ln -sv esmf-mpiexec.hydra esmf-mpirun
+/bin/rm -v mpif77  && /bin/ln -sv esmf-mpifort       esmf-mpif77
+/bin/rm -v mpif90  && /bin/ln -sv esmf-mpifort       esmf-mpif90
+
+cd $SCRIPTDIR
 
 # Install weird nc_time_axis package
 # ----------------------------------
-
 $PACKAGE_INSTALL -c conda-forge/label/renamed nc_time_axis
 
 # ------------
