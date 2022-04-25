@@ -344,7 +344,7 @@ PIP_INSTALL="$MINICONDA_BINDIR/$PYTHON_EXEC -m pip install"
 $PIP_INSTALL PyRTF3 pipenv pymp-pypi rasterio theano blaze h5py
 $PIP_INSTALL pycircleci metpy siphon questionary xgrads
 $PIP_INSTALL ruamel.yaml
-$PIP_INSTALL tensorflow evidential-deep-learning
+$PIP_INSTALL tensorflow evidential-deep-learning silence_tensorflow
 $PIP_INSTALL yaplon
 
 # some packages require a Fortran compiler. This sometimes isn't available
