@@ -11,22 +11,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Removed
+
+### Deprecated
+
+## [4.11.0] - 2022-04-28
+
+### Added
+
 - Explicit Conda Packages
   - wordcloud
+  - zarr
 
 - Explicit Pip Packages
   - ruamel.yaml
+  - tensorflow
+  - evidential-deep-learning
+  - yaplon
 
 ### Changed
 
 - Only install `pythran` on Linux
+- Instead of removing the `mpi*` files in `bin`, we now rename to `esmf-mpi*`
+- Moved `xgboost` from mamba install to pip (due to pip having the latest version)
 
 ### Removed
 
 - Removed the anaconda install scripts
 - Removed support for Python 2
-
-### Deprecated
 
 ## [4.10.3] - 2022-01-13
 

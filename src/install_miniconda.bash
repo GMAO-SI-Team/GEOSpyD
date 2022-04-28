@@ -5,7 +5,7 @@
 # -----
 
 EXAMPLE_PY_VERSION="3.9"
-EXAMPLE_MINI_VERSION="4.10.3"
+EXAMPLE_MINI_VERSION="4.11.0"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
@@ -294,7 +294,7 @@ $PACKAGE_INSTALL cmocean eofs pyspharm windspharm cubes
 $PACKAGE_INSTALL pyasn1 redis redis-py ujson mdp configobj argcomplete biopython
 $PACKAGE_INSTALL requests-toolbelt twine wxpython
 $PACKAGE_INSTALL sockjs-tornado sphinx_rtd_theme django
-$PACKAGE_INSTALL xgboost gooey pypng seaborn astropy
+$PACKAGE_INSTALL gooey pypng seaborn astropy
 $PACKAGE_INSTALL fastcache get_terminal_size greenlet imageio jbig lzo
 $PACKAGE_INSTALL mock sphinxcontrib pytables
 $PACKAGE_INSTALL pydap
@@ -303,6 +303,7 @@ $PACKAGE_INSTALL gsw
 $PACKAGE_INSTALL timezonefinder
 $PACKAGE_INSTALL cython
 $PACKAGE_INSTALL wordcloud
+$PACKAGE_INSTALL zarr
 
 # Only install pythran on linux. On mac it brings in an old clang
 if [[ $MINICONDA_ARCH == Linux ]]
@@ -311,13 +312,28 @@ then
 fi
 
 # esmpy installs mpi. We don't want any of those in the bin dir
-/bin/rm -v $MINICONDA_INSTALLDIR/bin/mpi*
+# so we rename and relink. First we rename the files:
 
-# We used to install cis, but it is too old; tries to downgrade matplotlib
+cd $MINICONDA_INSTALLDIR/bin
+
+/bin/mv -v mpicc         esmf-mpicc
+/bin/mv -v mpicxx        esmf-mpicxx
+/bin/mv -v mpiexec.hydra esmf-mpiexec.hydra
+/bin/mv -v mpifort       esmf-mpifort
+/bin/mv -v mpichversion  esmf-mpichversion
+/bin/mv -v mpivars       esmf-mpivars
+
+# Now we have to handle the symlinks
+/bin/rm -v mpic++  && /bin/ln -sv esmf-mpicxx        esmf-mpic++
+/bin/rm -v mpiexec && /bin/ln -sv esmf-mpiexec.hydra esmf-mpiexec
+/bin/rm -v mpirun  && /bin/ln -sv esmf-mpiexec.hydra esmf-mpirun
+/bin/rm -v mpif77  && /bin/ln -sv esmf-mpifort       esmf-mpif77
+/bin/rm -v mpif90  && /bin/ln -sv esmf-mpifort       esmf-mpif90
+
+cd $SCRIPTDIR
 
 # Install weird nc_time_axis package
 # ----------------------------------
-
 $PACKAGE_INSTALL -c conda-forge/label/renamed nc_time_axis
 
 # ------------
@@ -328,6 +344,9 @@ PIP_INSTALL="$MINICONDA_BINDIR/$PYTHON_EXEC -m pip install"
 $PIP_INSTALL PyRTF3 pipenv pymp-pypi rasterio theano blaze h5py
 $PIP_INSTALL pycircleci metpy siphon questionary xgrads
 $PIP_INSTALL ruamel.yaml
+$PIP_INSTALL xgboost
+$PIP_INSTALL tensorflow evidential-deep-learning silence_tensorflow
+$PIP_INSTALL yaplon
 
 # some packages require a Fortran compiler. This sometimes isn't available
 if [[ $ARCH == Linux ]]
