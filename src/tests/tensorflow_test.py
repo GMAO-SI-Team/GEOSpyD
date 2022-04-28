@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 
+# NOTES for Discover GPU: make sure to load CUDA and cuDNN, e.g.,
+#       ml nvidia/11.6 cuDNN/8.4.0.27_cuda11.6
+
+# This will silence tensorflow warnings. Careful, though, the
+# warnings are useful at times!
+#import silence_tensorflow.auto
+
 import tensorflow as tf
 print("TensorFlow version:", tf.__version__)
 
