@@ -11,6 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Removed
+
+### Deprecated
+
+## [4.11.0] - 2022-04-28
+
+### Added
+
 - Explicit Conda Packages
   - wordcloud
   - zarr
@@ -31,8 +41,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Removed the anaconda install scripts
 - Removed support for Python 2
-
-### Deprecated
 
 ## [4.10.3] - 2022-01-13
 
