@@ -294,7 +294,7 @@ $PACKAGE_INSTALL cmocean eofs pyspharm windspharm cubes
 $PACKAGE_INSTALL pyasn1 redis redis-py ujson mdp configobj argcomplete biopython
 $PACKAGE_INSTALL requests-toolbelt twine wxpython
 $PACKAGE_INSTALL sockjs-tornado sphinx_rtd_theme django
-$PACKAGE_INSTALL xgboost gooey pypng seaborn astropy
+$PACKAGE_INSTALL gooey pypng seaborn astropy
 $PACKAGE_INSTALL fastcache get_terminal_size greenlet imageio jbig lzo
 $PACKAGE_INSTALL mock sphinxcontrib pytables
 $PACKAGE_INSTALL pydap
@@ -344,6 +344,7 @@ PIP_INSTALL="$MINICONDA_BINDIR/$PYTHON_EXEC -m pip install"
 $PIP_INSTALL PyRTF3 pipenv pymp-pypi rasterio theano blaze h5py
 $PIP_INSTALL pycircleci metpy siphon questionary xgrads
 $PIP_INSTALL ruamel.yaml
+$PIP_INSTALL xgboost
 $PIP_INSTALL tensorflow evidential-deep-learning silence_tensorflow
 $PIP_INSTALL yaplon
 

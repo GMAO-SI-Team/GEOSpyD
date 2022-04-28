@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Only install `pythran` on Linux
 - Instead of removing the `mpi*` files in `bin`, we now rename to `esmf-mpi*`
+- Moved `xgboost` from mamba install to pip (due to pip having the latest version)
 
 ### Removed
 
