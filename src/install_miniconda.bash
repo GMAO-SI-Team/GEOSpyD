@@ -5,7 +5,7 @@
 # -----
 
 EXAMPLE_PY_VERSION="3.9"
-EXAMPLE_MINI_VERSION="4.11.0"
+EXAMPLE_MINI_VERSION="4.12.0"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
@@ -305,6 +305,8 @@ $PACKAGE_INSTALL cython
 $PACKAGE_INSTALL wordcloud
 $PACKAGE_INSTALL zarr
 
+$PACKAGE_INSTALL scikit-learn
+
 # Only install pythran on linux. On mac it brings in an old clang
 if [[ $MINICONDA_ARCH == Linux ]]
 then
@@ -357,9 +359,16 @@ fi
 
 # Finally pygrads is not in pip
 # -----------------------------
-tar xf $MINICONDA_SRCDIR/pygrads-3.0.b1.tar.gz -C $MINICONDA_SRCDIR
 
-cd $MINICONDA_SRCDIR/pygrads-3.0.b1
+PYGRADS_VERSION="pygrads-3.0.b1"
+if [[ -d $MINICONDA_SRCDIR/$PYGRADS_VERSION ]]
+then
+   rm -rf $MINICONDA_SRCDIR/$PYGRADS_VERSION
+fi
+
+tar xf $MINICONDA_SRCDIR/$PYGRADS_VERSION.tar.gz -C $MINICONDA_SRCDIR
+
+cd $MINICONDA_SRCDIR/$PYGRADS_VERSION
 
 $MINICONDA_BINDIR/$PYTHON_EXEC setup.py install
 

@@ -9,9 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed possible pygrads install issue
+
 ### Added
 
+- Explicit Conda Packages
+  - scikit-learn
+
 ### Changed
+
+- Updated example version to 4.12.0
 
 ### Removed
 
