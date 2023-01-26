@@ -4,8 +4,8 @@
 # Usage
 # -----
 
-EXAMPLE_PY_VERSION="3.9"
-EXAMPLE_MINI_VERSION="4.12.0"
+EXAMPLE_PY_VERSION="3.10"
+EXAMPLE_MINI_VERSION="22.11.1-1"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
@@ -349,6 +349,7 @@ $PIP_INSTALL ruamel.yaml
 $PIP_INSTALL xgboost
 $PIP_INSTALL tensorflow evidential-deep-learning silence_tensorflow
 $PIP_INSTALL yaplon
+$PIP_INSTALL lxml
 
 # some packages require a Fortran compiler. This sometimes isn't available
 if [[ $ARCH == Linux ]]
