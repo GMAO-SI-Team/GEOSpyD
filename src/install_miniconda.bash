@@ -283,19 +283,39 @@ $PACKAGE_INSTALL xgcm
 $PACKAGE_INSTALL s3fs boto3
 
 $PACKAGE_INSTALL numpy scipy numba
-$PACKAGE_INSTALL mkl mkl-service mkl_fft mkl_random tbb tbb4py intel-openmp
-$PACKAGE_INSTALL netcdf4 basemap proj matplotlib cartopy
+# We can't install mkl on arm64
+if [[ $MACH != arm64 ]]
+then
+   $PACKAGE_INSTALL mkl mkl-service mkl_fft mkl_random tbb tbb4py intel-openmp
+fi
+$PACKAGE_INSTALL netcdf4 cartopy proj matplotlib
 $PACKAGE_INSTALL virtualenv pipenv configargparse
 $PACKAGE_INSTALL psycopg2 gdal xarray geotiff plotly
 $PACKAGE_INSTALL iris pyhdf pip biggus hpccm cdsapi
 $PACKAGE_INSTALL babel beautifulsoup4 colorama gmp jupyter jupyterlab
-$PACKAGE_INSTALL pygrib f90nml seawater mo_pack libmo_unpack
-$PACKAGE_INSTALL cmocean eofs pyspharm windspharm cubes
+
+# Looks like mo_pack, libmo_pack, pyspharm, windspharm, and cubes are not available on arm64
+if [[ $MACH == arm64 ]]
+then
+   $PACKAGE_INSTALL pygrib f90nml seawater
+   $PACKAGE_INSTALL cmocean eofs
+else
+   $PACKAGE_INSTALL pygrib f90nml seawater mo_pack libmo_unpack
+   $PACKAGE_INSTALL cmocean eofs pyspharm windspharm cubes
+fi
+
 $PACKAGE_INSTALL pyasn1 redis redis-py ujson mdp configobj argcomplete biopython
 $PACKAGE_INSTALL requests-toolbelt twine wxpython
 $PACKAGE_INSTALL sockjs-tornado sphinx_rtd_theme django
-$PACKAGE_INSTALL gooey pypng seaborn astropy
-$PACKAGE_INSTALL fastcache get_terminal_size greenlet imageio jbig lzo
+# gooey and get_terminal_size are not on arm64
+if [[ $MACH == arm64 ]]
+then
+   $PACKAGE_INSTALL pypng seaborn astropy
+   $PACKAGE_INSTALL fastcache greenlet imageio jbig lzo
+else
+   $PACKAGE_INSTALL gooey pypng seaborn astropy
+   $PACKAGE_INSTALL fastcache get_terminal_size greenlet imageio jbig lzo
+fi
 $PACKAGE_INSTALL mock sphinxcontrib pytables
 $PACKAGE_INSTALL pydap
 $PACKAGE_INSTALL gsw
