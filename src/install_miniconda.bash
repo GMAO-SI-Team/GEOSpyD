@@ -5,7 +5,7 @@
 # -----
 
 EXAMPLE_PY_VERSION="3.10"
-EXAMPLE_MINI_VERSION="22.11.1-1"
+EXAMPLE_MINI_VERSION="23.3.1-0"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
@@ -328,6 +328,7 @@ $PACKAGE_INSTALL zarr
 $PACKAGE_INSTALL scikit-learn
 
 $PACKAGE_INSTALL yamllint
+$PACKAGE_INSTALL verboselogs
 
 # Only install pythran on linux. On mac it brings in an old clang
 if [[ $MINICONDA_ARCH == Linux ]]
