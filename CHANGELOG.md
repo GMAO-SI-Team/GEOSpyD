@@ -16,13 +16,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Explicit Conda Packages
   - scikit-learn
   - yamllint
+  - verboselogs
 
 - Explicit Pip Packages
   - lxml
 
 ### Changed
 
-- Updated example version to 22.11.1-1
+- Updated example version to 23.3.1-0
 
 ### Removed
 
