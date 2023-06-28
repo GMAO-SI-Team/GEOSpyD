@@ -18,6 +18,7 @@ usage() {
    echo ""
    echo "   Optional arguments:"
    echo "      --conda: Use conda installer"
+   echo "      --micromamba: Use micromamba installer"
    echo "      --help: Print this message"
    echo ""
    echo "  NOTE: This script installs within ${EXAMPLE_INSTALLDIR} with a path based on:"
@@ -84,6 +85,7 @@ fi
 # ----------------------
 
 USE_CONDA=FALSE
+USE_MICROMAMBA=FALSE
 
 while [[ -n "$1" ]]
 do
@@ -98,6 +100,10 @@ do
          ;;
       --conda)
          USE_CONDA=TRUE
+         shift
+         ;;
+      --micromamba)
+         USE_MICROMAMBA=TRUE
          shift
          ;;
       --prefix)
@@ -162,8 +168,15 @@ MINICONDA_SRCDIR=${SCRIPTDIR}/$MINICONDA_DISTVER
 if [[ $ARCH == Darwin ]]
 then
    MINICONDA_ARCH=MacOSX
+   if [[ $MACH == arm64 ]]
+   then
+      MICROMAMBA_ARCH=osx-arm64
+   else
+      MICROMAMBA_ARCH=osx-64
+   fi
 else
    MINICONDA_ARCH=Linux
+   MICROMAMBA_ARCH=linux-64
 fi
 
 # -----------------------------------------------------
@@ -262,12 +275,31 @@ function mamba_install {
    echo
 }
 
+function micromamba_install {
+   MICROMAMBA_INSTALL_COMMAND="$MINICONDA_BINDIR/micromamba -p $MINICONDA_INSTALLDIR install -y"
+
+   echo
+   echo "(micromamba) Now installing $*"
+   $MICROMAMBA_INSTALL_COMMAND $*
+   echo
+}
+
 conda_install conda
 
 if [[ "$USE_CONDA" == "TRUE" ]]
 then
    PACKAGE_INSTALL=conda_install
+elif [[ "$USE_MICROMAMBA" == "TRUE" ]]
+then
+   conda_install mamba
+   PACKAGE_INSTALL=micromamba_install
+
+   # We also need to fetch micromamba
+   # --------------------------------
+   MICROMAMBA_URL="https://micro.mamba.pm/api/micromamba/${MICROMAMBA_ARCH}/latest"
+   curl -Ls ${MICROMAMBA_URL} | tar -C $MINICONDA_INSTALLDIR -xvj bin/micromamba
 else
+   #conda_install mamba=1.4.4
    conda_install mamba
    PACKAGE_INSTALL=mamba_install
 fi
@@ -275,6 +307,10 @@ fi
 # --------------------
 # CONDA/MAMBA PACKAGES
 # --------------------
+
+#echo "=== Running mamba list ==="
+#$MINICONDA_BINDIR/mamba list
+#echo "=== End of mamba list ==="
 
 $PACKAGE_INSTALL esmpy
 $PACKAGE_INSTALL xesmf
