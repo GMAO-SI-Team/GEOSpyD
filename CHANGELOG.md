@@ -29,6 +29,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - scikit-learn
   - yamllint
   - verboselogs
+  - libblas
+    - Defaults to using `accelerate` on Arm-based macOS, and `mkl` on Intel-based macOS and Linux
 
 - Explicit Pip Packages
   - lxml

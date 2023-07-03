@@ -28,6 +28,31 @@ cleanup() {
    exit $ret
 }
 
+# -----------------
+# Detect usual bits
+# -----------------
+
+ARCH=$(uname -s)
+MACH=$(uname -m)
+NODE=$(uname -n)
+
+# -----------------------------------
+# Set the Default BLAS implementation
+# -----------------------------------
+
+if [[ $ARCH == Darwin ]]
+then
+   if [[ $MACH == arm64 ]]
+   then
+      BLAS_IMPL=accelerate
+      # Note: accelerate might have issues with scipy
+      #       See https://github.com/conda-forge/numpy-feedstock/issues/253
+   else
+      BLAS_IMPL=mkl
+   fi
+else
+   BLAS_IMPL=mkl
+fi
 # -----
 # Usage
 # -----
@@ -45,6 +70,7 @@ usage() {
    echo "      --prefix <full path to installation directory> (e.g, ${EXAMPLE_INSTALLDIR})"
    echo ""
    echo "   Optional arguments:"
+   echo "      --blas <blas> (default: ${BLAS_IMPL}, options: mkl, openblas, accelerate)"
    echo "      --conda: Use conda installer"
    echo "      --micromamba: Use micromamba installer"
    echo "      --help: Print this message"
@@ -76,14 +102,6 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
   [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
 done
 SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
-
-# -----------------
-# Detect usual bits
-# -----------------
-
-ARCH=$(uname -s)
-MACH=$(uname -m)
-NODE=$(uname -n)
 
 # ------------------------------
 # Define an in-place sed command
@@ -136,6 +154,10 @@ do
          MINICONDA_DIR=$2
          shift
          ;;
+      --blas)
+         BLAS_IMPL=$2
+         shift
+         ;;
       --help | -h)
          usage
          exit 1
@@ -170,6 +192,14 @@ then
    exit 1
 fi
 
+# We will only allow BLAS_IMPL to be: mkl, openblas, accelerate
+if [[ $BLAS_IMPL != mkl && $BLAS_IMPL != openblas && $BLAS_IMPL != accelerate ]]
+then
+   echo "ERROR: BLAS implementation $BLAS_IMPL not recognized"
+   usage
+   exit 1
+fi
+
 # ---------------------------
 # Miniconda version variables
 # ---------------------------
@@ -197,17 +227,14 @@ then
    if [[ $MACH == arm64 ]]
    then
       MICROMAMBA_ARCH=osx-arm64
-      BLAS_IMPL=accelerate
       # Note: accelerate might have issues with scipy
       #       See https://github.com/conda-forge/numpy-feedstock/issues/253
    else
       MICROMAMBA_ARCH=osx-64
-      BLAS_IMPL=mkl
    fi
 else
    MINICONDA_ARCH=Linux
    MICROMAMBA_ARCH=linux-64
-   BLAS_IMPL=mkl
 fi
 
 # -----------------------------------------------------
@@ -340,6 +367,7 @@ fi
 # CONDA/MAMBA PACKAGES
 # --------------------
 
+echo "BLAS_IMPL: $BLAS_IMPL"
 $PACKAGE_INSTALL "libblas=*=*${BLAS_IMPL}"
 
 $PACKAGE_INSTALL esmpy
