@@ -1,5 +1,33 @@
 #!/bin/bash
 
+set -Eeuo pipefail
+trap cleanup SIGINT SIGTERM ERR EXIT
+
+# Save user's .condarc for safety using mktemp
+# ---------------------------------------------
+
+ORIG_CONDARC=$(mktemp)
+CONDARC_FOUND=FALSE
+if [[ -f ~/.condarc ]]
+then
+   CONDARC_FOUND=TRUE
+   cp -v ~/.condarc $ORIG_CONDARC
+fi
+
+# The cleanup function will restore the user's .condarc
+# -----------------------------------------------------
+cleanup() {
+   trap - SIGINT SIGTERM ERR EXIT
+   local ret=$?
+   echo "Cleaning up..."
+   if [[ $CONDARC_FOUND == TRUE ]]
+   then
+      echo "Restoring original .condarc"
+      cp -v $ORIG_CONDARC ~/.condarc
+   fi
+   exit $ret
+}
+
 # -----
 # Usage
 # -----
@@ -87,7 +115,7 @@ fi
 USE_CONDA=FALSE
 USE_MICROMAMBA=FALSE
 
-while [[ -n "$1" ]]
+while [[ $# -gt 0 ]]
 do
    case "$1" in
       --python_version)
@@ -100,11 +128,9 @@ do
          ;;
       --conda)
          USE_CONDA=TRUE
-         shift
          ;;
       --micromamba)
          USE_MICROMAMBA=TRUE
-         shift
          ;;
       --prefix)
          MINICONDA_DIR=$2
@@ -231,12 +257,6 @@ fi
 # NOTE: We have to use strict conda-forge channel
 # -----------------------------------------------
 
-# Save user's .condarc for safety
-if [[ -f ~/.condarc ]]
-then
-   cp -v ~/.condarc ~/.condarc-SAVE
-fi
-
 # Now create the good one (we restore the old one at the end)
 cat << EOF > ~/.condarc
 # Temporary condarc from install_miniconda.bash
@@ -288,18 +308,24 @@ conda_install conda
 
 if [[ "$USE_CONDA" == "TRUE" ]]
 then
+   echo "=== Using conda as package manager ==="
+
    PACKAGE_INSTALL=conda_install
 elif [[ "$USE_MICROMAMBA" == "TRUE" ]]
 then
-   conda_install mamba
+   echo "=== Using micromamba as package manager ==="
+
    PACKAGE_INSTALL=micromamba_install
 
    # We also need to fetch micromamba
    # --------------------------------
+
+   echo "=== Installing micromamba ==="
    MICROMAMBA_URL="https://micro.mamba.pm/api/micromamba/${MICROMAMBA_ARCH}/latest"
    curl -Ls ${MICROMAMBA_URL} | tar -C $MINICONDA_INSTALLDIR -xvj bin/micromamba
 else
-   #conda_install mamba=1.4.4
+   echo "=== Using mamba as package manager ==="
+
    conda_install mamba
    PACKAGE_INSTALL=mamba_install
 fi
@@ -307,10 +333,6 @@ fi
 # --------------------
 # CONDA/MAMBA PACKAGES
 # --------------------
-
-#echo "=== Running mamba list ==="
-#$MINICONDA_BINDIR/mamba list
-#echo "=== End of mamba list ==="
 
 $PACKAGE_INSTALL esmpy
 $PACKAGE_INSTALL xesmf
@@ -454,13 +476,9 @@ cd $MINICONDA_INSTALLDIR
 ./bin/conda list > conda_list_packages.txt
 ./bin/pip freeze > pip_freeze_packages.txt
 
-# Restore User's .condarc
-# -----------------------
-if [[ -f ~/.condarc-SAVE ]]
-then
-   mv -v ~/.condarc-SAVE ~/.condarc
-else
-   rm -v ~/.condarc
-fi
+# Restore User's .condarc using cleanup function
+# ----------------------------------------------
+cleanup
 
 cd $SCRIPTDIR
+
