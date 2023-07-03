@@ -197,12 +197,17 @@ then
    if [[ $MACH == arm64 ]]
    then
       MICROMAMBA_ARCH=osx-arm64
+      BLAS_IMPL=accelerate
+      # Note: accelerate might have issues with scipy
+      #       See https://github.com/conda-forge/numpy-feedstock/issues/253
    else
       MICROMAMBA_ARCH=osx-64
+      BLAS_IMPL=mkl
    fi
 else
    MINICONDA_ARCH=Linux
    MICROMAMBA_ARCH=linux-64
+   BLAS_IMPL=mkl
 fi
 
 # -----------------------------------------------------
@@ -279,6 +284,7 @@ MINICONDA_BINDIR=$MINICONDA_INSTALLDIR/bin
 
 function conda_install {
    CONDA_INSTALL_COMMAND="$MINICONDA_BINDIR/conda install -y"
+   echo "CONDA_INSTALL_COMMAND = $CONDA_INSTALL_COMMAND"
 
    echo
    echo "(conda) Now installing $*"
@@ -334,6 +340,8 @@ fi
 # CONDA/MAMBA PACKAGES
 # --------------------
 
+$PACKAGE_INSTALL "libblas=*=*${BLAS_IMPL}"
+
 $PACKAGE_INSTALL esmpy
 $PACKAGE_INSTALL xesmf
 $PACKAGE_INSTALL pytest
@@ -342,24 +350,24 @@ $PACKAGE_INSTALL s3fs boto3
 
 $PACKAGE_INSTALL numpy scipy numba
 # We can't install mkl on arm64
-if [[ $MACH != arm64 ]]
-then
-   $PACKAGE_INSTALL mkl mkl-service mkl_fft mkl_random tbb tbb4py intel-openmp
-fi
+#if [[ $MACH != arm64 ]]
+#then
+   #$PACKAGE_INSTALL mkl mkl-service mkl_fft mkl_random tbb tbb4py intel-openmp
+#fi
 $PACKAGE_INSTALL netcdf4 cartopy proj matplotlib
 $PACKAGE_INSTALL virtualenv pipenv configargparse
 $PACKAGE_INSTALL psycopg2 gdal xarray geotiff plotly
 $PACKAGE_INSTALL iris pyhdf pip biggus hpccm cdsapi
 $PACKAGE_INSTALL babel beautifulsoup4 colorama gmp jupyter jupyterlab
 
-# Looks like mo_pack, libmo_pack, pyspharm, windspharm, and cubes are not available on arm64
+# Looks like mo_pack, libmo_pack, pyspharm, windspharm are not available on arm64
 if [[ $MACH == arm64 ]]
 then
    $PACKAGE_INSTALL pygrib f90nml seawater
    $PACKAGE_INSTALL cmocean eofs
 else
    $PACKAGE_INSTALL pygrib f90nml seawater mo_pack libmo_unpack
-   $PACKAGE_INSTALL cmocean eofs pyspharm windspharm cubes
+   $PACKAGE_INSTALL cmocean eofs pyspharm windspharm
 fi
 
 $PACKAGE_INSTALL pyasn1 redis redis-py ujson mdp configobj argcomplete biopython
