@@ -72,18 +72,20 @@ usage() {
    echo "   Optional arguments:"
    echo "      --blas <blas> (default: ${BLAS_IMPL}, options: mkl, openblas, accelerate)"
    echo "      --conda: Use conda installer"
-   echo "      --micromamba: Use micromamba installer"
+   echo "      --mamba: Use mamba installer"
    echo "      --help: Print this message"
    echo ""
-   echo "  NOTE: This script installs within ${EXAMPLE_INSTALLDIR} with a path based on:"
+   echo "   By default we use the micromamba installer."
+   echo ""
+   echo "   NOTE: This script installs within ${EXAMPLE_INSTALLDIR} with a path based on:"
    echo ""
    echo "        1. The Miniconda version"
    echo "        2. The Python version"
    echo "        3. The date of the installation"
    echo ""
-   echo "  For example: $0 --python_version ${EXAMPLE_PY_VERSION} --miniconda_version ${EXAMPLE_MINI_VERSION} --prefix ${EXAMPLE_INSTALLDIR}"
+   echo "   For example: $0 --python_version ${EXAMPLE_PY_VERSION} --miniconda_version ${EXAMPLE_MINI_VERSION} --prefix ${EXAMPLE_INSTALLDIR}"
    echo ""
-   echo "  will create an install at:"
+   echo "   will create an install at:"
    echo "       ${EXAMPLE_INSTALLDIR}/${EXAMPLE_MINI_VERSION}_py${EXAMPLE_PY_VERSION}/${EXAMPLE_DATE}"
 }
 
@@ -131,7 +133,8 @@ fi
 # ----------------------
 
 USE_CONDA=FALSE
-USE_MICROMAMBA=FALSE
+USE_MAMBA=FALSE
+USE_MICROMAMBA=TRUE
 
 while [[ $# -gt 0 ]]
 do
@@ -146,9 +149,11 @@ do
          ;;
       --conda)
          USE_CONDA=TRUE
+         USE_MICROMAMBA=FALSE
          ;;
-      --micromamba)
-         USE_MICROMAMBA=TRUE
+      --mamba)
+         USE_MAMBA=TRUE
+         USE_MICROMAMBA=FALSE
          ;;
       --prefix)
          MINICONDA_DIR=$2
@@ -356,11 +361,14 @@ then
    echo "=== Installing micromamba ==="
    MICROMAMBA_URL="https://micro.mamba.pm/api/micromamba/${MICROMAMBA_ARCH}/latest"
    curl -Ls ${MICROMAMBA_URL} | tar -C $MINICONDA_INSTALLDIR -xvj bin/micromamba
-else
+elif [[ "$USE_MAMBA" == "TRUE" ]]
    echo "=== Using mamba as package manager ==="
 
    conda_install mamba
    PACKAGE_INSTALL=mamba_install
+else
+   echo "ERROR: No package manager selected! We should not get here. Exiting!"
+   exit 9
 fi
 
 # --------------------

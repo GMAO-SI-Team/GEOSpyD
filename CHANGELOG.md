@@ -17,13 +17,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
-## [23.3.1-0] - 2023-06-12
+## [23.3.1-0] - 2023-07-06
 
 ### Fixed
 
 - Fixed possible pygrads install issue
 
 ### Added
+
+- Added micromamba support (New Default Installer)
 
 - Explicit Conda Packages
   - scikit-learn
