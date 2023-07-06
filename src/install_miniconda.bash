@@ -362,6 +362,7 @@ then
    MICROMAMBA_URL="https://micro.mamba.pm/api/micromamba/${MICROMAMBA_ARCH}/latest"
    curl -Ls ${MICROMAMBA_URL} | tar -C $MINICONDA_INSTALLDIR -xvj bin/micromamba
 elif [[ "$USE_MAMBA" == "TRUE" ]]
+then
    echo "=== Using mamba as package manager ==="
 
    conda_install mamba
