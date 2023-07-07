@@ -73,9 +73,10 @@ usage() {
    echo "      --blas <blas> (default: ${BLAS_IMPL}, options: mkl, openblas, accelerate)"
    echo "      --conda: Use conda installer"
    echo "      --mamba: Use mamba installer"
+   echo "      --micromamba: Use micromamba installer"
    echo "      --help: Print this message"
    echo ""
-   echo "   By default we use the micromamba installer."
+   echo "   By default we use the micromamba installer on macOS and mamba on Linux"
    echo ""
    echo "   NOTE: This script installs within ${EXAMPLE_INSTALLDIR} with a path based on:"
    echo ""
@@ -132,9 +133,16 @@ fi
 # Command line arguments
 # ----------------------
 
-USE_CONDA=FALSE
-USE_MAMBA=FALSE
-USE_MICROMAMBA=TRUE
+if [[ $ARCH == Darwin ]]
+then
+   USE_CONDA=FALSE
+   USE_MAMBA=FALSE
+   USE_MICROMAMBA=TRUE
+else
+   USE_CONDA=FALSE
+   USE_MAMBA=TRUE
+   USE_MICROMAMBA=FALSE
+fi
 
 while [[ $# -gt 0 ]]
 do
@@ -149,11 +157,18 @@ do
          ;;
       --conda)
          USE_CONDA=TRUE
+         USE_MAMBA=FALSE
          USE_MICROMAMBA=FALSE
          ;;
       --mamba)
+         USE_CONDA=FALSE
          USE_MAMBA=TRUE
          USE_MICROMAMBA=FALSE
+         ;;
+      --micromamba)
+         USE_CONDA=FALSE
+         USE_MAMBA=FALSE
+         USE_MICROMAMBA=TRUE
          ;;
       --prefix)
          MINICONDA_DIR=$2
@@ -396,6 +411,7 @@ $PACKAGE_INSTALL virtualenv pipenv configargparse
 $PACKAGE_INSTALL psycopg2 gdal xarray geotiff plotly
 $PACKAGE_INSTALL iris pyhdf pip biggus hpccm cdsapi
 $PACKAGE_INSTALL babel beautifulsoup4 colorama gmp jupyter jupyterlab
+$PACKAGE_INSTALL movingpandas
 
 # Looks like mo_pack, libmo_pack, pyspharm, windspharm are not available on arm64
 if [[ $MACH == arm64 ]]
@@ -410,14 +426,12 @@ fi
 $PACKAGE_INSTALL pyasn1 redis redis-py ujson mdp configobj argcomplete biopython
 $PACKAGE_INSTALL requests-toolbelt twine wxpython
 $PACKAGE_INSTALL sockjs-tornado sphinx_rtd_theme django
-# gooey and get_terminal_size are not on arm64
-if [[ $MACH == arm64 ]]
-then
-   $PACKAGE_INSTALL pypng seaborn astropy
-   $PACKAGE_INSTALL fastcache greenlet imageio jbig lzo
+$PACKAGE_INSTALL pypng seaborn astropy
+$PACKAGE_INSTALL fastcache greenlet imageio jbig lzo
+# get_terminal_size are not on arm64
+if [[ $MACH != arm64 ]]
 else
-   $PACKAGE_INSTALL gooey pypng seaborn astropy
-   $PACKAGE_INSTALL fastcache get_terminal_size greenlet imageio jbig lzo
+   $PACKAGE_INSTALL get_terminal_size
 fi
 $PACKAGE_INSTALL mock sphinxcontrib pytables
 $PACKAGE_INSTALL pydap

@@ -25,7 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added micromamba support (New Default Installer)
+- Added micromamba support
+  - micromamba is a new, experimental, lightweight conda installer; we use it by default on macOS
+  - mamba is still default on Linux
 
 - Explicit Conda Packages
   - scikit-learn
@@ -44,8 +46,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - Explicit Conda Packages
-  - basemap
-  - cubes
+  - basemap (obsolete, use cartopy)
+  - cubes (caused downgrade to Python 3.9)
+  - gooey (caused downgrade of many packages)
 
 ## [4.11.0] - 2022-04-28
 
