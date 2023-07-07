@@ -401,11 +401,6 @@ $PACKAGE_INSTALL xgcm
 $PACKAGE_INSTALL s3fs boto3
 
 $PACKAGE_INSTALL numpy scipy numba
-# We can't install mkl on arm64
-#if [[ $MACH != arm64 ]]
-#then
-   #$PACKAGE_INSTALL mkl mkl-service mkl_fft mkl_random tbb tbb4py intel-openmp
-#fi
 $PACKAGE_INSTALL netcdf4 cartopy proj matplotlib
 $PACKAGE_INSTALL virtualenv pipenv configargparse
 $PACKAGE_INSTALL psycopg2 gdal xarray geotiff plotly
