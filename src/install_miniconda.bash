@@ -425,7 +425,7 @@ $PACKAGE_INSTALL pypng seaborn astropy
 $PACKAGE_INSTALL fastcache greenlet imageio jbig lzo
 # get_terminal_size are not on arm64
 if [[ $MACH != arm64 ]]
-else
+then
    $PACKAGE_INSTALL get_terminal_size
 fi
 $PACKAGE_INSTALL mock sphinxcontrib pytables
