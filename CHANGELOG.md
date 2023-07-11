@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
-## [23.3.1-0] - 2023-07-06
+## [23.3.1-0] - 2023-07-11
 
 ### Fixed
 
@@ -40,9 +40,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Explicit Pip Packages
   - lxml
 
+- Added example for ffnet
+
 ### Changed
 
 - Updated example version to 23.3.1-0
+- Explicit Pip Packages
+  - ffnet
+    - Moved to use a Git fork of the package to fix issues with Python3 and scipy
+    - Requires gfortran 8.3 or higher
 
 ### Removed
 

@@ -220,6 +220,60 @@ then
    exit 1
 fi
 
+
+# On Linux we will install ffnet which now seems to require a Fortran
+# compiler and for portability's sake we require gfortran. Moreover, we
+# require that gfortran be at least version 8.3.0.
+#
+# We'll do the test now as to not waste time if the user has a
+# too-old gfortran.
+
+if [[ $ARCH == Linux ]]
+then
+   # We need to check if gfortran is available and if so, what version
+   # it is. If it is not available or if it is too old, we need to
+   # error out and tell the user to either install it or load an
+   # appropriate module.
+
+   # First check if gfortran is available
+   # ------------------------------------
+
+   if [[ -z $(which gfortran) ]]
+   then
+      echo "ERROR: gfortran is not available. Please install it or load an appropriate module."
+      echo "       We require at least version 8.3.0 to install ffnet"
+      exit 9
+   fi
+
+   # Now check the version
+   # ---------------------
+
+   # First get the version string as the last field of the first
+   # line of the output of gfortran --version
+   GFORTRAN_VERSION=$(gfortran --version | head -n 1 | awk '{print $NF}')
+
+   # Now split the version string into its components
+   # and capture the major, minor, and patch versions
+   GFORTRAN_MAJOR=$(echo $GFORTRAN_VERSION | awk -F. '{print $1}')
+   GFORTRAN_MINOR=$(echo $GFORTRAN_VERSION | awk -F. '{print $2}')
+   GFORTRAN_PATCH=$(echo $GFORTRAN_VERSION | awk -F. '{print $3}')
+
+   if [[ $GFORTRAN_MAJOR -lt 8 ]]
+   then
+      echo "ERROR: gfortran is too old. Please install at least version 8.3.0 or load an appropriate module."
+      exit 9
+   fi
+
+   if [[ $GFORTRAN_MINOR -lt 3 ]]
+   then
+      echo "ERROR: gfortran is too old. Please install at least version 8.3.0 or load an appropriate module."
+      exit 9
+   fi
+
+   # At this point we know that gfortran is available and that it is
+   # at least version 8.3.0. So we can install ffnet.
+fi
+
 # ---------------------------
 # Miniconda version variables
 # ---------------------------
@@ -487,10 +541,15 @@ $PIP_INSTALL yaplon
 $PIP_INSTALL lxml
 
 # some packages require a Fortran compiler. This sometimes isn't available
+# on macs (though usually is)
 if [[ $ARCH == Linux ]]
 then
    $PIP_INSTALL f90wrap
-   $PIP_INSTALL ffnet
+   # we need to install ffnet from https://github.com/GMAO-SI-Team/ffnet.git
+   # This is because the version in PyPI is not compatible with Python 3
+   # We also install from a fork because the mother repo is not
+   # compatible with scipy 2 which no longer has a random method
+   $PIP_INSTALL git+https://github.com/GMAO-SI-Team/ffnet
 fi
 
 # Finally pygrads is not in pip
