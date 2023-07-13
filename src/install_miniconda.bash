@@ -460,7 +460,7 @@ $PACKAGE_INSTALL virtualenv pipenv configargparse
 $PACKAGE_INSTALL psycopg2 gdal xarray geotiff plotly
 $PACKAGE_INSTALL iris pyhdf pip biggus hpccm cdsapi
 $PACKAGE_INSTALL babel beautifulsoup4 colorama gmp jupyter jupyterlab
-$PACKAGE_INSTALL movingpandas
+$PACKAGE_INSTALL movingpandas geoviews hvplot geopandas
 
 # Looks like mo_pack, libmo_pack, pyspharm, windspharm are not available on arm64
 if [[ $MACH == arm64 ]]
@@ -545,11 +545,10 @@ $PIP_INSTALL lxml
 if [[ $ARCH == Linux ]]
 then
    $PIP_INSTALL f90wrap
-   # we need to install ffnet from https://github.com/GMAO-SI-Team/ffnet.git
+   # we need to install ffnet from https://github.com/mrkwjc/ffnet.git
    # This is because the version in PyPI is not compatible with Python 3
-   # We also install from a fork because the mother repo is not
-   # compatible with scipy 2 which no longer has a random method
-   $PIP_INSTALL git+https://github.com/GMAO-SI-Team/ffnet
+   # and latest scipy
+   $PIP_INSTALL git+https://github.com/mrkwjc/ffnet
 fi
 
 # Finally pygrads is not in pip

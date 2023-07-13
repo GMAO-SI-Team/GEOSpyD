@@ -36,6 +36,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - libblas
     - Defaults to using `accelerate` on Arm-based macOS, and `mkl` on Intel-based macOS and Linux
   - movingpandas
+  - geoviews
+  - hvplot
+  - geopandas
 
 - Explicit Pip Packages
   - lxml
@@ -47,7 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated example version to 23.3.1-0
 - Explicit Pip Packages
   - ffnet
-    - Moved to use a Git fork of the package to fix issues with Python3 and scipy
+    - Moved to use a Git master branch of the package to fix issues with Python3 and scipy
     - Requires gfortran 8.3 or higher
 
 ### Removed
