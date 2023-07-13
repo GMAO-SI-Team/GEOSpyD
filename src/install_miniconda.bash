@@ -57,8 +57,8 @@ fi
 # Usage
 # -----
 
-EXAMPLE_PY_VERSION="3.10"
-EXAMPLE_MINI_VERSION="23.3.1-0"
+EXAMPLE_PY_VERSION="3.11"
+EXAMPLE_MINI_VERSION="25.3.0-3"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
@@ -472,7 +472,12 @@ else
    $PACKAGE_INSTALL cmocean eofs pyspharm windspharm
 fi
 
-$PACKAGE_INSTALL pyasn1 redis redis-py ujson mdp configobj argcomplete biopython
+$PACKAGE_INSTALL pyasn1 redis redis-py ujson configobj argcomplete biopython
+# mdp only exists from 3.10 and older
+if [[ $PYTHON_VER_WITHOUT_DOT -le 310 ]]
+then
+   $PACKAGE_INSTALL mdp
+fi
 $PACKAGE_INSTALL requests-toolbelt twine wxpython
 $PACKAGE_INSTALL sockjs-tornado sphinx_rtd_theme django
 $PACKAGE_INSTALL pypng seaborn astropy

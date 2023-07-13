@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
-## [23.3.1-0] - 2023-07-11
+## [23.5.0-3] - 2023-07-13
 
 ### Fixed
 
@@ -59,6 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - basemap (obsolete, use cartopy)
   - cubes (caused downgrade to Python 3.9)
   - gooey (caused downgrade of many packages)
+  - mdp (obsolete, not supported by 3.11)
 
 ## [4.11.0] - 2022-04-28
 
