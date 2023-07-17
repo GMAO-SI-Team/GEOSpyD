@@ -385,7 +385,6 @@ MINICONDA_BINDIR=$MINICONDA_INSTALLDIR/bin
 
 function conda_install {
    CONDA_INSTALL_COMMAND="$MINICONDA_BINDIR/conda install -y"
-   echo "CONDA_INSTALL_COMMAND = $CONDA_INSTALL_COMMAND"
 
    echo
    echo "(conda) Now installing $*"
@@ -411,13 +410,15 @@ function micromamba_install {
    echo
 }
 
-conda_install conda
-
 if [[ "$USE_CONDA" == "TRUE" ]]
 then
    echo "=== Using conda as package manager ==="
 
    PACKAGE_INSTALL=conda_install
+
+   # Update conda
+   $MINICONDA_BINDIR/conda update -y -n base -c defaults conda
+
 elif [[ "$USE_MICROMAMBA" == "TRUE" ]]
 then
    echo "=== Using micromamba as package manager ==="
@@ -448,6 +449,28 @@ fi
 echo "BLAS_IMPL: $BLAS_IMPL"
 $PACKAGE_INSTALL "libblas=*=*${BLAS_IMPL}"
 
+# in libcxx 14.0.6 (from miniconda), __string is a file, but in 16.0.6
+# it is a directory so, in order for libcxx to be updated, we have to
+# remove it because the updater will fail
+#
+# First let's check the version of libcxx installed by asking conda
+
+LIBCXX_VERSION=$($MINICONDA_INSTALLDIR/bin/conda list libcxx | grep libcxx | awk '{print $2}')
+
+# This is the version X.Y.Z and we want to do things only if X is 14 as it's a directory in 15+
+# Let's use bash to extract the first number
+LIBCXX_MAJOR_VERSION=${LIBCXX_VERSION%%.*}
+MINICONDA_MAJOR_VERSION=${MINICONDA_VER%%.*}
+
+if [[ $LIBCXX_MAJOR_VERSION -lt 15 && $MINICONDA_MAJOR_VERSION -ge 23 ]]
+then
+   if [[ -f $MINICONDA_INSTALLDIR/include/c++/v1/__string ]]
+   then
+      echo "Removing $MINICONDA_INSTALLDIR/include/c++/v1/__string"
+      rm $MINICONDA_INSTALLDIR/include/c++/v1/__string
+   fi
+fi
+
 $PACKAGE_INSTALL esmpy
 $PACKAGE_INSTALL xesmf
 $PACKAGE_INSTALL pytest
@@ -460,7 +483,10 @@ $PACKAGE_INSTALL virtualenv pipenv configargparse
 $PACKAGE_INSTALL psycopg2 gdal xarray geotiff plotly
 $PACKAGE_INSTALL iris pyhdf pip biggus hpccm cdsapi
 $PACKAGE_INSTALL babel beautifulsoup4 colorama gmp jupyter jupyterlab
-$PACKAGE_INSTALL movingpandas geoviews hvplot geopandas
+# We need to pin hvplot due to https://github.com/movingpandas/movingpandas/issues/326
+# We need to pin bokeh as geoviews does not work with bokeh 3.2
+$PACKAGE_INSTALL movingpandas geoviews hvplot=0.8.3 geopandas bokeh=3.1
+$PACKAGE_INSTALL intake intake-parquet intake-xarray
 
 # Looks like mo_pack, libmo_pack, pyspharm, windspharm are not available on arm64
 if [[ $MACH == arm64 ]]
@@ -469,7 +495,13 @@ then
    $PACKAGE_INSTALL cmocean eofs
 else
    $PACKAGE_INSTALL pygrib f90nml seawater mo_pack libmo_unpack
-   $PACKAGE_INSTALL cmocean eofs pyspharm windspharm
+   # Next it looks like pyspharm and windspharm are not available for Python 3.11
+   if [[ $PYTHON_VER_WITHOUT_DOT -lt 311 ]]
+   then
+      $PACKAGE_INSTALL cmocean eofs pyspharm windspharm
+   else
+      $PACKAGE_INSTALL cmocean eofs
+   fi
 fi
 
 $PACKAGE_INSTALL pyasn1 redis redis-py ujson configobj argcomplete biopython

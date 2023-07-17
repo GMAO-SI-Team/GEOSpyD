@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed possible pygrads install issue
+- Fixed odd libcxx issue between miniconda and conda-forge
 
 ### Added
 
@@ -37,8 +38,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Defaults to using `accelerate` on Arm-based macOS, and `mkl` on Intel-based macOS and Linux
   - movingpandas
   - geoviews
-  - hvplot
+  - hvplot (pinned to 0.8.3)
+  - bokeh (pinned to 3.1)
   - geopandas
+  - intake
+  - intake-parquet
+  - intake-xarray
 
 - Explicit Pip Packages
   - lxml
