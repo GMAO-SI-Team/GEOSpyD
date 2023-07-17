@@ -453,21 +453,26 @@ $PACKAGE_INSTALL "libblas=*=*${BLAS_IMPL}"
 # it is a directory so, in order for libcxx to be updated, we have to
 # remove it because the updater will fail
 #
-# First let's check the version of libcxx installed by asking conda
+# This seems to only happen on macOS
 
-LIBCXX_VERSION=$($MINICONDA_INSTALLDIR/bin/conda list libcxx | grep libcxx | awk '{print $2}')
-
-# This is the version X.Y.Z and we want to do things only if X is 14 as it's a directory in 15+
-# Let's use bash to extract the first number
-LIBCXX_MAJOR_VERSION=${LIBCXX_VERSION%%.*}
-MINICONDA_MAJOR_VERSION=${MINICONDA_VER%%.*}
-
-if [[ $LIBCXX_MAJOR_VERSION -lt 15 && $MINICONDA_MAJOR_VERSION -ge 23 ]]
+if [[ $ARCH == Darwin ]]
 then
-   if [[ -f $MINICONDA_INSTALLDIR/include/c++/v1/__string ]]
+   # First let's check the version of libcxx installed by asking conda
+
+   LIBCXX_VERSION=$($MINICONDA_INSTALLDIR/bin/conda list libcxx | grep libcxx | awk '{print $2}')
+
+   # This is the version X.Y.Z and we want to do things only if X is 14 as it's a directory in 15+
+   # Let's use bash to extract the first number
+   LIBCXX_MAJOR_VERSION=${LIBCXX_VERSION%%.*}
+   MINICONDA_MAJOR_VERSION=${MINICONDA_VER%%.*}
+
+   if [[ $LIBCXX_MAJOR_VERSION -lt 15 && $MINICONDA_MAJOR_VERSION -ge 23 ]]
    then
-      echo "Removing $MINICONDA_INSTALLDIR/include/c++/v1/__string"
-      rm $MINICONDA_INSTALLDIR/include/c++/v1/__string
+      if [[ -f $MINICONDA_INSTALLDIR/include/c++/v1/__string ]]
+      then
+         echo "Removing $MINICONDA_INSTALLDIR/include/c++/v1/__string"
+         rm $MINICONDA_INSTALLDIR/include/c++/v1/__string
+      fi
    fi
 fi
 
