@@ -17,30 +17,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
-## [23.3.1-0] - 2023-06-12
+## [23.5.2-0] - 2023-07-19
 
 ### Fixed
 
 - Fixed possible pygrads install issue
+- Fixed odd libcxx issue between miniconda and conda-forge
 
 ### Added
+
+- Added micromamba support
+  - micromamba is a new, experimental, lightweight conda installer; we use it by default on macOS
+  - mamba is still default on Linux
 
 - Explicit Conda Packages
   - scikit-learn
   - yamllint
   - verboselogs
+  - libblas
+    - Defaults to using `accelerate` on Arm-based macOS, and `mkl` on Intel-based macOS and Linux
+  - movingpandas
+  - geoviews
+  - hvplot (pinned to 0.8.3)
+  - bokeh (pinned to 3.1)
+  - geopandas
+  - intake
+  - intake-parquet
+  - intake-xarray
 
 - Explicit Pip Packages
   - lxml
 
+- Added example for ffnet
+- Added changelog enforcer
+
 ### Changed
 
-- Updated example version to 23.3.1-0
+- Updated example miniconda version to 23.5.2-0
+- Updated example Python version to 3.11
+- Explicit Pip Packages
+  - ffnet
+    - Moved to use a Git master branch of the package to fix issues with Python3 and scipy
+    - Requires gfortran 8.3 or higher
 
 ### Removed
 
 - Explicit Conda Packages
-  - basemap
+  - basemap (obsolete, use cartopy)
+  - cubes (caused downgrade to Python 3.9)
+  - gooey (caused downgrade of many packages)
+  - mdp (obsolete, not supported by 3.11)
 
 ## [4.11.0] - 2022-04-28
 

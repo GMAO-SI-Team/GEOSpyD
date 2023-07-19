@@ -1,11 +1,64 @@
 #!/bin/bash
 
+set -Eeuo pipefail
+trap cleanup SIGINT SIGTERM ERR EXIT
+
+# Save user's .condarc for safety using mktemp
+# ---------------------------------------------
+
+ORIG_CONDARC=$(mktemp)
+CONDARC_FOUND=FALSE
+if [[ -f ~/.condarc ]]
+then
+   CONDARC_FOUND=TRUE
+   cp -v ~/.condarc $ORIG_CONDARC
+fi
+
+# The cleanup function will restore the user's .condarc
+# -----------------------------------------------------
+cleanup() {
+   trap - SIGINT SIGTERM ERR EXIT
+   local ret=$?
+   echo "Cleaning up..."
+   if [[ $CONDARC_FOUND == TRUE ]]
+   then
+      echo "Restoring original .condarc"
+      cp -v $ORIG_CONDARC ~/.condarc
+   fi
+   exit $ret
+}
+
+# -----------------
+# Detect usual bits
+# -----------------
+
+ARCH=$(uname -s)
+MACH=$(uname -m)
+NODE=$(uname -n)
+
+# -----------------------------------
+# Set the Default BLAS implementation
+# -----------------------------------
+
+if [[ $ARCH == Darwin ]]
+then
+   if [[ $MACH == arm64 ]]
+   then
+      BLAS_IMPL=accelerate
+      # Note: accelerate might have issues with scipy
+      #       See https://github.com/conda-forge/numpy-feedstock/issues/253
+   else
+      BLAS_IMPL=mkl
+   fi
+else
+   BLAS_IMPL=mkl
+fi
 # -----
 # Usage
 # -----
 
-EXAMPLE_PY_VERSION="3.10"
-EXAMPLE_MINI_VERSION="23.3.1-0"
+EXAMPLE_PY_VERSION="3.11"
+EXAMPLE_MINI_VERSION="25.3.0-3"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
@@ -17,18 +70,23 @@ usage() {
    echo "      --prefix <full path to installation directory> (e.g, ${EXAMPLE_INSTALLDIR})"
    echo ""
    echo "   Optional arguments:"
+   echo "      --blas <blas> (default: ${BLAS_IMPL}, options: mkl, openblas, accelerate)"
    echo "      --conda: Use conda installer"
+   echo "      --mamba: Use mamba installer"
+   echo "      --micromamba: Use micromamba installer"
    echo "      --help: Print this message"
    echo ""
-   echo "  NOTE: This script installs within ${EXAMPLE_INSTALLDIR} with a path based on:"
+   echo "   By default we use the micromamba installer on macOS and mamba on Linux"
+   echo ""
+   echo "   NOTE: This script installs within ${EXAMPLE_INSTALLDIR} with a path based on:"
    echo ""
    echo "        1. The Miniconda version"
    echo "        2. The Python version"
    echo "        3. The date of the installation"
    echo ""
-   echo "  For example: $0 --python_version ${EXAMPLE_PY_VERSION} --miniconda_version ${EXAMPLE_MINI_VERSION} --prefix ${EXAMPLE_INSTALLDIR}"
+   echo "   For example: $0 --python_version ${EXAMPLE_PY_VERSION} --miniconda_version ${EXAMPLE_MINI_VERSION} --prefix ${EXAMPLE_INSTALLDIR}"
    echo ""
-   echo "  will create an install at:"
+   echo "   will create an install at:"
    echo "       ${EXAMPLE_INSTALLDIR}/${EXAMPLE_MINI_VERSION}_py${EXAMPLE_PY_VERSION}/${EXAMPLE_DATE}"
 }
 
@@ -47,14 +105,6 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
   [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
 done
 SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
-
-# -----------------
-# Detect usual bits
-# -----------------
-
-ARCH=$(uname -s)
-MACH=$(uname -m)
-NODE=$(uname -n)
 
 # ------------------------------
 # Define an in-place sed command
@@ -83,9 +133,18 @@ fi
 # Command line arguments
 # ----------------------
 
-USE_CONDA=FALSE
+if [[ $ARCH == Darwin ]]
+then
+   USE_CONDA=FALSE
+   USE_MAMBA=FALSE
+   USE_MICROMAMBA=TRUE
+else
+   USE_CONDA=FALSE
+   USE_MAMBA=TRUE
+   USE_MICROMAMBA=FALSE
+fi
 
-while [[ -n "$1" ]]
+while [[ $# -gt 0 ]]
 do
    case "$1" in
       --python_version)
@@ -98,10 +157,25 @@ do
          ;;
       --conda)
          USE_CONDA=TRUE
-         shift
+         USE_MAMBA=FALSE
+         USE_MICROMAMBA=FALSE
+         ;;
+      --mamba)
+         USE_CONDA=FALSE
+         USE_MAMBA=TRUE
+         USE_MICROMAMBA=FALSE
+         ;;
+      --micromamba)
+         USE_CONDA=FALSE
+         USE_MAMBA=FALSE
+         USE_MICROMAMBA=TRUE
          ;;
       --prefix)
          MINICONDA_DIR=$2
+         shift
+         ;;
+      --blas)
+         BLAS_IMPL=$2
          shift
          ;;
       --help | -h)
@@ -138,6 +212,68 @@ then
    exit 1
 fi
 
+# We will only allow BLAS_IMPL to be: mkl, openblas, accelerate
+if [[ $BLAS_IMPL != mkl && $BLAS_IMPL != openblas && $BLAS_IMPL != accelerate ]]
+then
+   echo "ERROR: BLAS implementation $BLAS_IMPL not recognized"
+   usage
+   exit 1
+fi
+
+
+# On Linux we will install ffnet which now seems to require a Fortran
+# compiler and for portability's sake we require gfortran. Moreover, we
+# require that gfortran be at least version 8.3.0.
+#
+# We'll do the test now as to not waste time if the user has a
+# too-old gfortran.
+
+if [[ $ARCH == Linux ]]
+then
+   # We need to check if gfortran is available and if so, what version
+   # it is. If it is not available or if it is too old, we need to
+   # error out and tell the user to either install it or load an
+   # appropriate module.
+
+   # First check if gfortran is available
+   # ------------------------------------
+
+   if [[ -z $(which gfortran) ]]
+   then
+      echo "ERROR: gfortran is not available. Please install it or load an appropriate module."
+      echo "       We require at least version 8.3.0 to install ffnet"
+      exit 9
+   fi
+
+   # Now check the version
+   # ---------------------
+
+   # First get the version string as the last field of the first
+   # line of the output of gfortran --version
+   GFORTRAN_VERSION=$(gfortran --version | head -n 1 | awk '{print $NF}')
+
+   # Now split the version string into its components
+   # and capture the major, minor, and patch versions
+   GFORTRAN_MAJOR=$(echo $GFORTRAN_VERSION | awk -F. '{print $1}')
+   GFORTRAN_MINOR=$(echo $GFORTRAN_VERSION | awk -F. '{print $2}')
+   GFORTRAN_PATCH=$(echo $GFORTRAN_VERSION | awk -F. '{print $3}')
+
+   if [[ $GFORTRAN_MAJOR -lt 8 ]]
+   then
+      echo "ERROR: gfortran is too old. Please install at least version 8.3.0 or load an appropriate module."
+      exit 9
+   fi
+
+   if [[ $GFORTRAN_MINOR -lt 3 ]]
+   then
+      echo "ERROR: gfortran is too old. Please install at least version 8.3.0 or load an appropriate module."
+      exit 9
+   fi
+
+   # At this point we know that gfortran is available and that it is
+   # at least version 8.3.0. So we can install ffnet.
+fi
+
 # ---------------------------
 # Miniconda version variables
 # ---------------------------
@@ -162,8 +298,17 @@ MINICONDA_SRCDIR=${SCRIPTDIR}/$MINICONDA_DISTVER
 if [[ $ARCH == Darwin ]]
 then
    MINICONDA_ARCH=MacOSX
+   if [[ $MACH == arm64 ]]
+   then
+      MICROMAMBA_ARCH=osx-arm64
+      # Note: accelerate might have issues with scipy
+      #       See https://github.com/conda-forge/numpy-feedstock/issues/253
+   else
+      MICROMAMBA_ARCH=osx-64
+   fi
 else
    MINICONDA_ARCH=Linux
+   MICROMAMBA_ARCH=linux-64
 fi
 
 # -----------------------------------------------------
@@ -218,12 +363,6 @@ fi
 # NOTE: We have to use strict conda-forge channel
 # -----------------------------------------------
 
-# Save user's .condarc for safety
-if [[ -f ~/.condarc ]]
-then
-   cp -v ~/.condarc ~/.condarc-SAVE
-fi
-
 # Now create the good one (we restore the old one at the end)
 cat << EOF > ~/.condarc
 # Temporary condarc from install_miniconda.bash
@@ -262,19 +401,80 @@ function mamba_install {
    echo
 }
 
-conda_install conda
+function micromamba_install {
+   MICROMAMBA_INSTALL_COMMAND="$MINICONDA_BINDIR/micromamba -p $MINICONDA_INSTALLDIR install -y"
+
+   echo
+   echo "(micromamba) Now installing $*"
+   $MICROMAMBA_INSTALL_COMMAND $*
+   echo
+}
 
 if [[ "$USE_CONDA" == "TRUE" ]]
 then
+   echo "=== Using conda as package manager ==="
+
    PACKAGE_INSTALL=conda_install
-else
+
+   # Update conda
+   $MINICONDA_BINDIR/conda update -y -n base -c defaults conda
+
+elif [[ "$USE_MICROMAMBA" == "TRUE" ]]
+then
+   echo "=== Using micromamba as package manager ==="
+
+   PACKAGE_INSTALL=micromamba_install
+
+   # We also need to fetch micromamba
+   # --------------------------------
+
+   echo "=== Installing micromamba ==="
+   MICROMAMBA_URL="https://micro.mamba.pm/api/micromamba/${MICROMAMBA_ARCH}/latest"
+   curl -Ls ${MICROMAMBA_URL} | tar -C $MINICONDA_INSTALLDIR -xvj bin/micromamba
+elif [[ "$USE_MAMBA" == "TRUE" ]]
+then
+   echo "=== Using mamba as package manager ==="
+
    conda_install mamba
    PACKAGE_INSTALL=mamba_install
+else
+   echo "ERROR: No package manager selected! We should not get here. Exiting!"
+   exit 9
 fi
 
 # --------------------
 # CONDA/MAMBA PACKAGES
 # --------------------
+
+echo "BLAS_IMPL: $BLAS_IMPL"
+$PACKAGE_INSTALL "libblas=*=*${BLAS_IMPL}"
+
+# in libcxx 14.0.6 (from miniconda), __string is a file, but in 16.0.6
+# it is a directory so, in order for libcxx to be updated, we have to
+# remove it because the updater will fail
+#
+# This seems to only happen on macOS
+
+if [[ $ARCH == Darwin ]]
+then
+   # First let's check the version of libcxx installed by asking conda
+
+   LIBCXX_VERSION=$($MINICONDA_INSTALLDIR/bin/conda list libcxx | grep libcxx | awk '{print $2}')
+
+   # This is the version X.Y.Z and we want to do things only if X is 14 as it's a directory in 15+
+   # Let's use bash to extract the first number
+   LIBCXX_MAJOR_VERSION=${LIBCXX_VERSION%%.*}
+   MINICONDA_MAJOR_VERSION=${MINICONDA_VER%%.*}
+
+   if [[ $LIBCXX_MAJOR_VERSION -lt 15 && $MINICONDA_MAJOR_VERSION -ge 23 ]]
+   then
+      if [[ -f $MINICONDA_INSTALLDIR/include/c++/v1/__string ]]
+      then
+         echo "Removing $MINICONDA_INSTALLDIR/include/c++/v1/__string"
+         rm $MINICONDA_INSTALLDIR/include/c++/v1/__string
+      fi
+   fi
+fi
 
 $PACKAGE_INSTALL esmpy
 $PACKAGE_INSTALL xesmf
@@ -283,38 +483,46 @@ $PACKAGE_INSTALL xgcm
 $PACKAGE_INSTALL s3fs boto3
 
 $PACKAGE_INSTALL numpy scipy numba
-# We can't install mkl on arm64
-if [[ $MACH != arm64 ]]
-then
-   $PACKAGE_INSTALL mkl mkl-service mkl_fft mkl_random tbb tbb4py intel-openmp
-fi
 $PACKAGE_INSTALL netcdf4 cartopy proj matplotlib
 $PACKAGE_INSTALL virtualenv pipenv configargparse
 $PACKAGE_INSTALL psycopg2 gdal xarray geotiff plotly
 $PACKAGE_INSTALL iris pyhdf pip biggus hpccm cdsapi
 $PACKAGE_INSTALL babel beautifulsoup4 colorama gmp jupyter jupyterlab
+# We need to pin hvplot due to https://github.com/movingpandas/movingpandas/issues/326
+# We need to pin bokeh as geoviews does not work with bokeh 3.2
+$PACKAGE_INSTALL movingpandas geoviews hvplot=0.8.3 geopandas bokeh=3.1
+$PACKAGE_INSTALL intake intake-parquet intake-xarray
 
-# Looks like mo_pack, libmo_pack, pyspharm, windspharm, and cubes are not available on arm64
+# Looks like mo_pack, libmo_pack, pyspharm, windspharm are not available on arm64
 if [[ $MACH == arm64 ]]
 then
    $PACKAGE_INSTALL pygrib f90nml seawater
    $PACKAGE_INSTALL cmocean eofs
 else
    $PACKAGE_INSTALL pygrib f90nml seawater mo_pack libmo_unpack
-   $PACKAGE_INSTALL cmocean eofs pyspharm windspharm cubes
+   # Next it looks like pyspharm and windspharm are not available for Python 3.11
+   if [[ $PYTHON_VER_WITHOUT_DOT -lt 311 ]]
+   then
+      $PACKAGE_INSTALL cmocean eofs pyspharm windspharm
+   else
+      $PACKAGE_INSTALL cmocean eofs
+   fi
 fi
 
-$PACKAGE_INSTALL pyasn1 redis redis-py ujson mdp configobj argcomplete biopython
+$PACKAGE_INSTALL pyasn1 redis redis-py ujson configobj argcomplete biopython
+# mdp only exists from 3.10 and older
+if [[ $PYTHON_VER_WITHOUT_DOT -le 310 ]]
+then
+   $PACKAGE_INSTALL mdp
+fi
 $PACKAGE_INSTALL requests-toolbelt twine wxpython
 $PACKAGE_INSTALL sockjs-tornado sphinx_rtd_theme django
-# gooey and get_terminal_size are not on arm64
-if [[ $MACH == arm64 ]]
+$PACKAGE_INSTALL pypng seaborn astropy
+$PACKAGE_INSTALL fastcache greenlet imageio jbig lzo
+# get_terminal_size are not on arm64
+if [[ $MACH != arm64 ]]
 then
-   $PACKAGE_INSTALL pypng seaborn astropy
-   $PACKAGE_INSTALL fastcache greenlet imageio jbig lzo
-else
-   $PACKAGE_INSTALL gooey pypng seaborn astropy
-   $PACKAGE_INSTALL fastcache get_terminal_size greenlet imageio jbig lzo
+   $PACKAGE_INSTALL get_terminal_size
 fi
 $PACKAGE_INSTALL mock sphinxcontrib pytables
 $PACKAGE_INSTALL pydap
@@ -375,10 +583,14 @@ $PIP_INSTALL yaplon
 $PIP_INSTALL lxml
 
 # some packages require a Fortran compiler. This sometimes isn't available
+# on macs (though usually is)
 if [[ $ARCH == Linux ]]
 then
    $PIP_INSTALL f90wrap
-   $PIP_INSTALL ffnet
+   # we need to install ffnet from https://github.com/mrkwjc/ffnet.git
+   # This is because the version in PyPI is not compatible with Python 3
+   # and latest scipy
+   $PIP_INSTALL git+https://github.com/mrkwjc/ffnet
 fi
 
 # Finally pygrads is not in pip
@@ -418,13 +630,9 @@ cd $MINICONDA_INSTALLDIR
 ./bin/conda list > conda_list_packages.txt
 ./bin/pip freeze > pip_freeze_packages.txt
 
-# Restore User's .condarc
-# -----------------------
-if [[ -f ~/.condarc-SAVE ]]
-then
-   mv -v ~/.condarc-SAVE ~/.condarc
-else
-   rm -v ~/.condarc
-fi
+# Restore User's .condarc using cleanup function
+# ----------------------------------------------
+cleanup
 
 cd $SCRIPTDIR
+
