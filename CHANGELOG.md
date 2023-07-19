@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
-## [23.5.0-3] - 2023-07-19
+## [23.5.2-0] - 2023-07-19
 
 ### Fixed
 
@@ -52,7 +52,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Updated example version to 23.3.1-0
+- Updated example miniconda version to 23.5.2-0
+- Updated example Python version to 3.11
 - Explicit Pip Packages
   - ffnet
     - Moved to use a Git master branch of the package to fix issues with Python3 and scipy
