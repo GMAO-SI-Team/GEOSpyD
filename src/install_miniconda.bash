@@ -258,13 +258,18 @@ then
    GFORTRAN_MINOR=$(echo $GFORTRAN_VERSION | awk -F. '{print $2}')
    GFORTRAN_PATCH=$(echo $GFORTRAN_VERSION | awk -F. '{print $3}')
 
+   # Now, we want to know if gfortran is 8.3 or higher.
+
+   # First check if the major version is less than 8
    if [[ $GFORTRAN_MAJOR -lt 8 ]]
    then
       echo "ERROR: gfortran is too old. Please install at least version 8.3.0 or load an appropriate module."
       exit 9
    fi
 
-   if [[ $GFORTRAN_MINOR -lt 3 ]]
+   # Now check if the major version is 8 and the minor version is less
+   # than 3
+   if [[ $GFORTRAN_MAJOR -eq 8 && $GFORTRAN_MINOR -lt 3 ]]
    then
       echo "ERROR: gfortran is too old. Please install at least version 8.3.0 or load an appropriate module."
       exit 9
