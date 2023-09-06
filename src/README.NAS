@@ -1,5 +1,5 @@
 In order to use the install script do (for example):
 
 ```
-$ ./install_miniconda.bash --python_version 3.10 --miniconda_version 23.3.1-0 --prefix /nobackup/gmao_SIteam/GEOSpyD
+$ ./install_miniconda.bash --python_version 3.11 --miniconda_version 23.5.2-0 --prefix /nobackup/gmao_SIteam/GEOSpyD
 ```
