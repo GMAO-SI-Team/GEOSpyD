@@ -6,5 +6,8 @@ In order to use the install script do (for example):
 
 will create an install at:
 ```
-/opt/GEOSpyD/23.5.2-0_py3.11/2023-06-12
+/opt/GEOSpyD/23.5.2-0_py3.11/YYYY-MM-DD
 ```
+
+where YYYY-MM-DD is the date of the install. We use a date so that if
+the stack is re-installed, the previous install is not overwritten.
