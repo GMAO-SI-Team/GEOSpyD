@@ -549,7 +549,7 @@ $PACKAGE_INSTALL scikit-learn
 $PACKAGE_INSTALL yamllint
 $PACKAGE_INSTALL verboselogs
 
-$PACKAGE_INSTALL pykdtree pyogrio contourpy
+$PACKAGE_INSTALL pykdtree pyogrio contourpy sunpy
 
 # Only install pythran on linux. On mac it brings in an old clang
 if [[ $MINICONDA_ARCH == Linux ]]
@@ -594,6 +594,7 @@ $PIP_INSTALL xgboost
 $PIP_INSTALL tensorflow evidential-deep-learning silence_tensorflow
 $PIP_INSTALL yaplon
 $PIP_INSTALL lxml
+$PIP_INSTALL juliandate
 
 # some packages require a Fortran compiler. This sometimes isn't available
 # on macs (though usually is)

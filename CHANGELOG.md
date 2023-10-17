@@ -48,9 +48,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - pykdtree
   - pyogrio
   - contourpy
+  - sunpy
 
 - Explicit Pip Packages
   - lxml
+  - juliandate
 
 - Added example for ffnet
 - Added changelog enforcer
