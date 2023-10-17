@@ -9,13 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fixed issue with gfortran version detection
-
 ### Added
 
 ### Changed
-
-- Updated readmes with latest versions
 
 ### Removed
 
@@ -27,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed possible pygrads install issue
 - Fixed odd libcxx issue between miniconda and conda-forge
+- Fixed issue with gfortran version detection
 
 ### Added
 
@@ -60,12 +57,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Removed `src/` directory as unnecessary; all files are now in the root
 - Updated example miniconda version to 23.5.2-0
 - Updated example Python version to 3.11
 - Explicit Pip Packages
   - ffnet
     - Moved to use a Git master branch of the package to fix issues with Python3 and scipy
     - Requires gfortran 8.3 or higher
+- Updated readmes with latest versions
 
 ### Removed
 
