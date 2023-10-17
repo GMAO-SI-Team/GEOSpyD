@@ -57,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Removed `src/` directory as unnecessary; all files are now in the root
 - Updated example miniconda version to 23.5.2-0
 - Updated example Python version to 3.11
 - Explicit Pip Packages
