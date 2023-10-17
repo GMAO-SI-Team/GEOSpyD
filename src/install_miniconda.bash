@@ -58,7 +58,7 @@ fi
 # -----
 
 EXAMPLE_PY_VERSION="3.11"
-EXAMPLE_MINI_VERSION="25.3.0-3"
+EXAMPLE_MINI_VERSION="25.3.2-0"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
@@ -542,6 +542,8 @@ $PACKAGE_INSTALL scikit-learn
 
 $PACKAGE_INSTALL yamllint
 $PACKAGE_INSTALL verboselogs
+
+$PACKAGE_INSTALL pykdtree pyogrio contourpy
 
 # Only install pythran on linux. On mac it brings in an old clang
 if [[ $MINICONDA_ARCH == Linux ]]

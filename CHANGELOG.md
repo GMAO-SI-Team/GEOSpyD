@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
-## [23.5.2-0] - 2023-07-19
+## [23.5.2] - 2023-10-17
 
 ### Fixed
 
@@ -48,6 +48,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - intake
   - intake-parquet
   - intake-xarray
+  - pykdtree
+  - pyogrio
+  - contourpy
 
 - Explicit Pip Packages
   - lxml
