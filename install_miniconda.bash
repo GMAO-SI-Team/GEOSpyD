@@ -549,7 +549,7 @@ $PACKAGE_INSTALL scikit-learn
 $PACKAGE_INSTALL yamllint
 $PACKAGE_INSTALL verboselogs
 
-$PACKAGE_INSTALL pykdtree pyogrio contourpy
+$PACKAGE_INSTALL pykdtree pyogrio contourpy sunpy
 
 # Only install pythran on linux. On mac it brings in an old clang
 if [[ $MINICONDA_ARCH == Linux ]]
