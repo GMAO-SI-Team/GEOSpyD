@@ -1,4 +1,4 @@
-In order to use the install script do (for example):
+The command for installing on NCCS system is:
 
 ```
 $ ./install_miniconda.bash --python_version 3.11 --miniconda_version 23.5.2-0 --prefix /usr/local/other/python/GEOSpyD/

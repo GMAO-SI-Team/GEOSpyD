@@ -11,6 +11,7 @@ CONDARC_FOUND=FALSE
 if [[ -f ~/.condarc ]]
 then
    CONDARC_FOUND=TRUE
+   echo "Found existing .condarc. Saving to $ORIG_CONDARC"
    cp -v ~/.condarc $ORIG_CONDARC
 fi
 
@@ -71,14 +72,15 @@ usage() {
    echo ""
    echo "   Optional arguments:"
    echo "      --blas <blas> (default: ${BLAS_IMPL}, options: mkl, openblas, accelerate)"
-   echo "      --conda: Use conda installer"
-   echo "      --mamba: Use mamba installer"
-   echo "      --micromamba: Use micromamba installer"
+   echo "      --conda: Use conda installer (NOT recommended, only for legacy support)"
+   echo "      --mamba: Use mamba installer (default on Linux)"
+   echo "      --micromamba: Use micromamba installer (default on macOS)"
    echo "      --help: Print this message"
    echo ""
-   echo "   By default we use the micromamba installer on macOS and mamba on Linux"
+   echo "   By default we use the micromamba installer and accelerate BLAS stack on macOS and"
+   echo "   mamba and MKL on Linux"
    echo ""
-   echo "   NOTE: This script installs within ${EXAMPLE_INSTALLDIR} with a path based on:"
+   echo "   NOTE 1: This script installs within ${EXAMPLE_INSTALLDIR} with a path based on:"
    echo ""
    echo "        1. The Miniconda version"
    echo "        2. The Python version"
@@ -88,6 +90,10 @@ usage() {
    echo ""
    echo "   will create an install at:"
    echo "       ${EXAMPLE_INSTALLDIR}/${EXAMPLE_MINI_VERSION}_py${EXAMPLE_PY_VERSION}/${EXAMPLE_DATE}"
+   echo ""
+   echo "  NOTE 2: This script will create or substitute a .condarc file in the user's home directory."
+   echo "          If you have an existing .condarc file, it will be restored after installation."
+   echo "          We do this to ensure that the installation uses conda-forge as the default channel."
 }
 
 if [[ $# -lt 4 ]]
