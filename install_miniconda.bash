@@ -550,6 +550,7 @@ $PACKAGE_INSTALL yamllint
 $PACKAGE_INSTALL verboselogs
 
 $PACKAGE_INSTALL pykdtree pyogrio contourpy sunpy
+$PACKAGE_INSTALL haversine
 
 # Only install pythran on linux. On mac it brings in an old clang
 if [[ $MINICONDA_ARCH == Linux ]]
