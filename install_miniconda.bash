@@ -71,14 +71,14 @@ usage() {
    echo "      --prefix <full path to installation directory> (e.g, ${EXAMPLE_INSTALLDIR})"
    echo ""
    echo "   Optional arguments:"
-   echo "      --blas <blas> (default: ${BLAS_IMPL}, options: mkl, openblas, accelerate)"
+   echo "      --blas <blas> (default: ${BLAS_IMPL}, options: mkl, openblas, accelerate, blis)"
+   echo "      --micromamba: Use micromamba installer (default)"
+   echo "      --mamba: Use mamba installer"
    echo "      --conda: Use conda installer (NOT recommended, only for legacy support)"
-   echo "      --mamba: Use mamba installer (default on Linux)"
-   echo "      --micromamba: Use micromamba installer (default on macOS)"
    echo "      --help: Print this message"
    echo ""
-   echo "   By default we use the micromamba installer and accelerate BLAS stack on macOS and"
-   echo "   mamba and MKL on Linux"
+   echo "   By default we use the micromamba installer on both Linux and macOS"
+   echo "   For BLAS, we use accelerate on macOS and MKL on Linux"
    echo ""
    echo "   NOTE 1: This script installs within ${EXAMPLE_INSTALLDIR} with a path based on:"
    echo ""
@@ -139,16 +139,9 @@ fi
 # Command line arguments
 # ----------------------
 
-if [[ $ARCH == Darwin ]]
-then
-   USE_CONDA=FALSE
-   USE_MAMBA=FALSE
-   USE_MICROMAMBA=TRUE
-else
-   USE_CONDA=FALSE
-   USE_MAMBA=TRUE
-   USE_MICROMAMBA=FALSE
-fi
+USE_CONDA=FALSE
+USE_MAMBA=FALSE
+USE_MICROMAMBA=TRUE
 
 while [[ $# -gt 0 ]]
 do
@@ -218,8 +211,8 @@ then
    exit 1
 fi
 
-# We will only allow BLAS_IMPL to be: mkl, openblas, accelerate
-if [[ $BLAS_IMPL != mkl && $BLAS_IMPL != openblas && $BLAS_IMPL != accelerate ]]
+# We will only allow BLAS_IMPL to be: mkl, openblas, accelerate, or blis
+if [[ $BLAS_IMPL != mkl && $BLAS_IMPL != openblas && $BLAS_IMPL != accelerate && $BLAS_IMPL != blis ]]
 then
    echo "ERROR: BLAS implementation $BLAS_IMPL not recognized"
    usage

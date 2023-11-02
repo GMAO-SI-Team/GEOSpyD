@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Use micromamba by default on Linux
+- Add BLIS as allowed BLAS
+
 ### Removed
 
 ### Deprecated
