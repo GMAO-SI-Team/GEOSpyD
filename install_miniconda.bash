@@ -58,8 +58,8 @@ fi
 # Usage
 # -----
 
-EXAMPLE_PY_VERSION="3.11"
-EXAMPLE_MINI_VERSION="25.3.2-0"
+EXAMPLE_PY_VERSION="3.12"
+EXAMPLE_MINI_VERSION="24.1.2-0"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
@@ -493,8 +493,7 @@ $PACKAGE_INSTALL psycopg2 gdal xarray geotiff plotly
 $PACKAGE_INSTALL iris pyhdf pip biggus hpccm cdsapi
 $PACKAGE_INSTALL babel beautifulsoup4 colorama gmp jupyter jupyterlab
 # We need to pin hvplot due to https://github.com/movingpandas/movingpandas/issues/326
-# We need to pin bokeh as geoviews does not work with bokeh 3.2
-$PACKAGE_INSTALL movingpandas geoviews hvplot=0.8.3 geopandas bokeh=3.1
+$PACKAGE_INSTALL movingpandas geoviews hvplot=0.8.3 geopandas bokeh
 $PACKAGE_INSTALL intake intake-parquet intake-xarray
 
 # Looks like mo_pack, libmo_pack, pyspharm, windspharm are not available on arm64
@@ -534,7 +533,6 @@ $PACKAGE_INSTALL gsw
 
 $PACKAGE_INSTALL timezonefinder
 $PACKAGE_INSTALL cython
-$PACKAGE_INSTALL wordcloud
 $PACKAGE_INSTALL zarr
 
 $PACKAGE_INSTALL scikit-learn
@@ -581,7 +579,7 @@ $PACKAGE_INSTALL -c conda-forge/label/renamed nc_time_axis
 # ------------
 
 PIP_INSTALL="$MINICONDA_BINDIR/$PYTHON_EXEC -m pip install"
-$PIP_INSTALL PyRTF3 pipenv pymp-pypi rasterio theano blaze h5py
+$PIP_INSTALL PyRTF3 pipenv pymp-pypi rasterio h5py
 $PIP_INSTALL pycircleci metpy siphon questionary xgrads
 $PIP_INSTALL ruamel.yaml
 $PIP_INSTALL xgboost
@@ -589,6 +587,7 @@ $PIP_INSTALL tensorflow evidential-deep-learning silence_tensorflow
 $PIP_INSTALL yaplon
 $PIP_INSTALL lxml
 $PIP_INSTALL juliandate
+$PIP_INSTALL wordcloud
 
 # some packages require a Fortran compiler. This sometimes isn't available
 # on macs (though usually is)

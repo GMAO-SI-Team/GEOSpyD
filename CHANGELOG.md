@@ -13,13 +13,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Explicit Conda Packages
   - haversine
+- Explicit Pip Packages
+  - wordcloud (moved from conda)
 
 ### Changed
 
+- Updated to miniconda 24.1.2-0
+- Updated to Python 3.12 by default
 - Use micromamba by default on Linux
 - Add BLIS as allowed BLAS
 
 ### Removed
+
+- Explicit Conda Packages
+  - wordcloud (moved to pip)
+- Explicit Pip Packages
+  - theano (no longer maintained)
+  - blaze (no longer maintained)
 
 ### Deprecated
 
