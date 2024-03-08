@@ -34,13 +34,14 @@ Usage: ./install_miniconda.bash --python_version <python version> --miniconda_ve
       --prefix <full path to installation directory> (e.g, /opt/GEOSpyD)
 
    Optional arguments:
-      --blas <blas> (default: accelerate, options: mkl, openblas, accelerate)
+      --blas <blas> (default: accelerate, options: mkl, openblas, accelerate, blis)
+      --micromamba: Use micromamba installer (default)
+      --mamba: Use mamba installer
       --conda: Use conda installer (NOT recommended, only for legacy support)
-      --mamba: Use mamba installer (default on Linux)
-      --micromamba: Use micromamba installer (default on macOS)
       --help: Print this message
 
-   By default we use the micromamba installer on macOS and mamba on Linux
+   By default we use the micromamba installer on both Linux and macOS
+   For BLAS, we use accelerate on macOS and MKL on Linux
 
    NOTE 1: This script installs within /opt/GEOSpyD with a path based on:
 
@@ -51,7 +52,7 @@ Usage: ./install_miniconda.bash --python_version <python version> --miniconda_ve
    For example: ./install_miniconda.bash --python_version 3.11 --miniconda_version 25.3.2-0 --prefix /opt/GEOSpyD
 
    will create an install at:
-       /opt/GEOSpyD/25.3.2-0_py3.11/2023-10-17
+       /opt/GEOSpyD/25.3.2-0_py3.11/2024-03-08
 
   NOTE 2: This script will create or substitute a .condarc file in the user's home directory.
           If you have an existing .condarc file, it will be restored after installation.
