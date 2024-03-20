@@ -589,7 +589,6 @@ $PIP_INSTALL tensorflow evidential-deep-learning silence_tensorflow
 $PIP_INSTALL yaplon
 $PIP_INSTALL lxml
 $PIP_INSTALL juliandate
-$PIP_INSTALL wordcloud
 
 # some packages require a Fortran compiler. This sometimes isn't available
 # on macs (though usually is)
