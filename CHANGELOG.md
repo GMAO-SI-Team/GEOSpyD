@@ -22,10 +22,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Updated to miniconda 24.1.2-0
 - Updated to Python 3.12 by default
-
-### Changed
-
-- Updated example miniconda version to 23.10.0-1
 - Use micromamba by default on Linux
 - Add BLIS as allowed BLAS
 
