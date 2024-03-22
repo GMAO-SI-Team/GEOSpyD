@@ -548,6 +548,7 @@ $PACKAGE_INSTALL autopep8
 # Only install pythran on linux. On mac it brings in an old clang
 if [[ $MINICONDA_ARCH == Linux ]]
 then
+   $PACKAGE_INSTALL f90wrap
    $PACKAGE_INSTALL pythran
 fi
 
@@ -594,10 +595,16 @@ $PIP_INSTALL juliandate
 # on macs (though usually is)
 if [[ $ARCH == Linux ]]
 then
-   $PIP_INSTALL f90wrap
    # we need to install ffnet from https://github.com/mrkwjc/ffnet.git
    # This is because the version in PyPI is not compatible with Python 3
    # and latest scipy
+   #
+   # 1. This package now requirest meson to build (for Python 3.12)
+   $PIP_INSTALL meson
+   # 2. We also need f2py but that is in our install directory bin
+   #    so we need to add that to the PATH
+   export PATH=$MINICONDA_INSTALLDIR/bin:$PATH
+   # 3. Now we can install ffnet
    $PIP_INSTALL git+https://github.com/mrkwjc/ffnet
 fi
 

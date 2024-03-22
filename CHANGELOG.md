@@ -15,8 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - haversine
   - ford
   - autopep8
+  - f90wrap (moved from pip)
 - Explicit Pip Packages
   - wordcloud (moved from conda)
+  - meson (required for ffnet)
 
 ### Changed
 
@@ -32,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Explicit Pip Packages
   - theano (no longer maintained)
   - blaze (no longer maintained)
+  - f90wrap (moved to conda)
 
 ### Deprecated
 
