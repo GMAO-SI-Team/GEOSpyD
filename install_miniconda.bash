@@ -220,32 +220,62 @@ then
 fi
 
 
-# On Linux we will install ffnet which now seems to require a Fortran
+# To install ffnet we require a Fortran
 # compiler and for portability's sake we require gfortran. Moreover, we
 # require that gfortran be at least version 8.3.0.
 #
 # We'll do the test now as to not waste time if the user has a
 # too-old gfortran.
+#
+# We have two situations. On Linux we *require* gfortran to be
+# installed. We assume that it's called gfortran as it is on most Linux
+# distros. On macOS, we check for gfortran, gfortran-11, -12, or -13 (as
+# those are available via brew).
 
-if [[ $ARCH == Linux ]]
+# First look if gfortran is available
+# -----------------------------------
+
+FORTRAN_AVAILABLE=FALSE
+
+if [[ $ARCH == Darwin ]]
 then
-   # We need to check if gfortran is available and if so, what version
-   # it is. If it is not available or if it is too old, we need to
-   # error out and tell the user to either install it or load an
-   # appropriate module.
-
-   # First check if gfortran is available
-   # ------------------------------------
-
-   if [[ -z $(which gfortran) ]]
+   if [[ $(command -v gfortran) ]]
    then
+      echo "Found gfortran on macOS. Will be used for ffnet"
+      FORTRAN_AVAILABLE=TRUE
+   elif [[ $(command -v gfortran-11) ]]
+   then
+      echo "Found gfortran-11 on macOS. Will be used for ffnet"
+      FORTRAN_AVAILABLE=TRUE
+   elif [[ $(command -v gfortran-12) ]]
+   then
+      echo "Found gfortran-12 on macOS. Will be used for ffnet"
+      FORTRAN_AVAILABLE=TRUE
+   elif [[ $(command -v gfortran-13) ]]
+   then
+      echo "Found gfortran-13 on macOS. Will be used for ffnet"
+      FORTRAN_AVAILABLE=TRUE
+   else
+      echo "WARNING: gfortran is not available. If you wish to install ffnet, please install it or load an appropriate module."
+      echo "         For now we will skip the installation of ffnet"
+   fi
+else
+   if [[ $(command -v gfortran) ]]
+   then
+      echo "Found gfortran on Linux. Will be used for ffnet"
+      FORTRAN_AVAILABLE=TRUE
+   else
       echo "ERROR: gfortran is not available. Please install it or load an appropriate module."
       echo "       We require at least version 8.3.0 to install ffnet"
       exit 9
    fi
+fi
 
-   # Now check the version
-   # ---------------------
+# Now check the version
+# ---------------------
+
+if [[ $FORTRAN_AVAILABLE == TRUE ]]
+then
 
    # First get the version string as the last field of the first
    # line of the output of gfortran --version
@@ -593,13 +623,13 @@ $PIP_INSTALL juliandate
 
 # some packages require a Fortran compiler. This sometimes isn't available
 # on macs (though usually is)
-if [[ $ARCH == Linux ]]
+if [[ $FORTRAN_AVAILABLE == TRUE ]]
 then
    # we need to install ffnet from https://github.com/mrkwjc/ffnet.git
    # This is because the version in PyPI is not compatible with Python 3
    # and latest scipy
    #
-   # 1. This package now requirest meson to build (for Python 3.12)
+   # 1. This package now requires meson to build (for Python 3.12)
    $PIP_INSTALL meson
    # 2. We also need f2py but that is in our install directory bin
    #    so we need to add that to the PATH

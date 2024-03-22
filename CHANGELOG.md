@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### Changed
+
+- Updated to miniconda 24.1.2-0
+- Updated to Python 3.12 by default
+- Use micromamba by default on Linux
+- Add BLIS as allowed BLAS
+- Added ability for ffnet to install on macOS
+  - The script looks for a gfortran compiler and if it finds one, it will install ffnet
+
 ### Added
 
 - Explicit Conda Packages
@@ -19,13 +28,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Explicit Pip Packages
   - wordcloud (moved from conda)
   - meson (required for ffnet)
-
-### Changed
-
-- Updated to miniconda 24.1.2-0
-- Updated to Python 3.12 by default
-- Use micromamba by default on Linux
-- Add BLIS as allowed BLAS
 
 ### Removed
 
