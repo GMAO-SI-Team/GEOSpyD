@@ -574,6 +574,7 @@ $PACKAGE_INSTALL pykdtree pyogrio contourpy sunpy
 $PACKAGE_INSTALL haversine
 $PACKAGE_INSTALL ford
 $PACKAGE_INSTALL autopep8
+$PACKAGE_INSTALL mdutils
 
 # Only install pythran on linux. On mac it brings in an old clang
 if [[ $MINICONDA_ARCH == Linux ]]

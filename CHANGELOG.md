@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - haversine
   - ford
   - autopep8
+  - mdutils
   - f90wrap (moved from pip)
 - Explicit Pip Packages
   - wordcloud (moved from conda)
