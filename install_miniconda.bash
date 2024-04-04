@@ -12,7 +12,7 @@ if [[ -f ~/.condarc ]]
 then
    CONDARC_FOUND=TRUE
    echo "Found existing .condarc. Saving to $ORIG_CONDARC"
-   cp -v ~/.condarc $ORIG_CONDARC
+   cp -v ~/.condarc "$ORIG_CONDARC"
 fi
 
 # The cleanup function will restore the user's .condarc
@@ -24,7 +24,7 @@ cleanup() {
    if [[ $CONDARC_FOUND == TRUE ]]
    then
       echo "Restoring original .condarc"
-      cp -v $ORIG_CONDARC ~/.condarc
+      cp -v "$ORIG_CONDARC" ~/.condarc
    fi
    exit $ret
 }
