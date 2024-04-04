@@ -1,5 +1,5 @@
 The command for installing on NCCS system is:
 
 ```
-$ ./install_miniconda.bash --python_version 3.11 --miniconda_version 23.5.2-0 --prefix /usr/local/other/python/GEOSpyD/
+$ ./install_miniconda.bash --python_version 3.12 --miniconda_version 24.1.2-0 --prefix /usr/local/other/python/GEOSpyD/
 ```

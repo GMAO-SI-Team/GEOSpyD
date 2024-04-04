@@ -12,7 +12,7 @@ if [[ -f ~/.condarc ]]
 then
    CONDARC_FOUND=TRUE
    echo "Found existing .condarc. Saving to $ORIG_CONDARC"
-   cp -v ~/.condarc $ORIG_CONDARC
+   cp -v ~/.condarc "$ORIG_CONDARC"
 fi
 
 # The cleanup function will restore the user's .condarc
@@ -24,7 +24,7 @@ cleanup() {
    if [[ $CONDARC_FOUND == TRUE ]]
    then
       echo "Restoring original .condarc"
-      cp -v $ORIG_CONDARC ~/.condarc
+      cp -v "$ORIG_CONDARC" ~/.condarc
    fi
    exit $ret
 }
@@ -58,8 +58,8 @@ fi
 # Usage
 # -----
 
-EXAMPLE_PY_VERSION="3.11"
-EXAMPLE_MINI_VERSION="25.3.2-0"
+EXAMPLE_PY_VERSION="3.12"
+EXAMPLE_MINI_VERSION="24.1.2-0"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
@@ -220,32 +220,62 @@ then
 fi
 
 
-# On Linux we will install ffnet which now seems to require a Fortran
+# To install ffnet we require a Fortran
 # compiler and for portability's sake we require gfortran. Moreover, we
 # require that gfortran be at least version 8.3.0.
 #
 # We'll do the test now as to not waste time if the user has a
 # too-old gfortran.
+#
+# We have two situations. On Linux we *require* gfortran to be
+# installed. We assume that it's called gfortran as it is on most Linux
+# distros. On macOS, we check for gfortran, gfortran-11, -12, or -13 (as
+# those are available via brew).
 
-if [[ $ARCH == Linux ]]
+# First look if gfortran is available
+# -----------------------------------
+
+FORTRAN_AVAILABLE=FALSE
+
+if [[ $ARCH == Darwin ]]
 then
-   # We need to check if gfortran is available and if so, what version
-   # it is. If it is not available or if it is too old, we need to
-   # error out and tell the user to either install it or load an
-   # appropriate module.
-
-   # First check if gfortran is available
-   # ------------------------------------
-
-   if [[ -z $(which gfortran) ]]
+   if [[ $(command -v gfortran) ]]
    then
+      echo "Found gfortran on macOS. Will be used for ffnet"
+      FORTRAN_AVAILABLE=TRUE
+   elif [[ $(command -v gfortran-11) ]]
+   then
+      echo "Found gfortran-11 on macOS. Will be used for ffnet"
+      FORTRAN_AVAILABLE=TRUE
+   elif [[ $(command -v gfortran-12) ]]
+   then
+      echo "Found gfortran-12 on macOS. Will be used for ffnet"
+      FORTRAN_AVAILABLE=TRUE
+   elif [[ $(command -v gfortran-13) ]]
+   then
+      echo "Found gfortran-13 on macOS. Will be used for ffnet"
+      FORTRAN_AVAILABLE=TRUE
+   else
+      echo "WARNING: gfortran is not available. If you wish to install ffnet, please install it or load an appropriate module."
+      echo "         For now we will skip the installation of ffnet"
+   fi
+else
+   if [[ $(command -v gfortran) ]]
+   then
+      echo "Found gfortran on Linux. Will be used for ffnet"
+      FORTRAN_AVAILABLE=TRUE
+   else
       echo "ERROR: gfortran is not available. Please install it or load an appropriate module."
       echo "       We require at least version 8.3.0 to install ffnet"
       exit 9
    fi
+fi
 
-   # Now check the version
-   # ---------------------
+# Now check the version
+# ---------------------
+
+if [[ $FORTRAN_AVAILABLE == TRUE ]]
+then
 
    # First get the version string as the last field of the first
    # line of the output of gfortran --version
@@ -493,8 +523,7 @@ $PACKAGE_INSTALL psycopg2 gdal xarray geotiff plotly
 $PACKAGE_INSTALL iris pyhdf pip biggus hpccm cdsapi
 $PACKAGE_INSTALL babel beautifulsoup4 colorama gmp jupyter jupyterlab
 # We need to pin hvplot due to https://github.com/movingpandas/movingpandas/issues/326
-# We need to pin bokeh as geoviews does not work with bokeh 3.2
-$PACKAGE_INSTALL movingpandas geoviews hvplot=0.8.3 geopandas bokeh=3.1
+$PACKAGE_INSTALL movingpandas geoviews hvplot=0.8.3 geopandas bokeh
 $PACKAGE_INSTALL intake intake-parquet intake-xarray
 
 # Looks like mo_pack, libmo_pack, pyspharm, windspharm are not available on arm64
@@ -534,7 +563,6 @@ $PACKAGE_INSTALL gsw
 
 $PACKAGE_INSTALL timezonefinder
 $PACKAGE_INSTALL cython
-$PACKAGE_INSTALL wordcloud
 $PACKAGE_INSTALL zarr
 
 $PACKAGE_INSTALL scikit-learn
@@ -544,10 +572,14 @@ $PACKAGE_INSTALL verboselogs
 
 $PACKAGE_INSTALL pykdtree pyogrio contourpy sunpy
 $PACKAGE_INSTALL haversine
+$PACKAGE_INSTALL ford
+$PACKAGE_INSTALL autopep8
+$PACKAGE_INSTALL mdutils
 
 # Only install pythran on linux. On mac it brings in an old clang
 if [[ $MINICONDA_ARCH == Linux ]]
 then
+   $PACKAGE_INSTALL f90wrap
    $PACKAGE_INSTALL pythran
 fi
 
@@ -581,7 +613,7 @@ $PACKAGE_INSTALL -c conda-forge/label/renamed nc_time_axis
 # ------------
 
 PIP_INSTALL="$MINICONDA_BINDIR/$PYTHON_EXEC -m pip install"
-$PIP_INSTALL PyRTF3 pipenv pymp-pypi rasterio theano blaze h5py
+$PIP_INSTALL PyRTF3 pipenv pymp-pypi rasterio h5py
 $PIP_INSTALL pycircleci metpy siphon questionary xgrads
 $PIP_INSTALL ruamel.yaml
 $PIP_INSTALL xgboost
@@ -592,13 +624,27 @@ $PIP_INSTALL juliandate
 
 # some packages require a Fortran compiler. This sometimes isn't available
 # on macs (though usually is)
-if [[ $ARCH == Linux ]]
+if [[ $FORTRAN_AVAILABLE == TRUE ]]
 then
-   $PIP_INSTALL f90wrap
    # we need to install ffnet from https://github.com/mrkwjc/ffnet.git
    # This is because the version in PyPI is not compatible with Python 3
    # and latest scipy
+   #
+   # 1. This package now requires meson to build (for Python 3.12)
+   $PIP_INSTALL meson
+   # 2. We also need f2py but that is in our install directory bin
+   #    so we need to add that to the PATH
+   export PATH=$MINICONDA_INSTALLDIR/bin:$PATH
+   # 3. We also should redefine TMPDIR as on some systems (discover)
+   #    it seems to not work as hoped. So, we create a new directory
+   #    relative to the install script called tmp, and use that.
+   #    It appears meson uses TMPDIR to store its build files.
+   mkdir -p $SCRIPTDIR/tmp-for-ffnet
+   export TMPDIR=$SCRIPTDIR/tmp-for-ffnet
+   # 4. Now we can install ffnet
    $PIP_INSTALL git+https://github.com/mrkwjc/ffnet
+   # 5. We can now remove the tmp directory
+   rm -rf $SCRIPTDIR/tmp-for-ffnet
 fi
 
 # Finally pygrads is not in pip

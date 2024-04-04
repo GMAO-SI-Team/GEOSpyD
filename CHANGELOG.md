@@ -9,19 +9,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-### Added
-
-- Explicit Conda Packages
-  - haversine
-
 ### Changed
 
-- Use micromamba by default on Linux
-- Add BLIS as allowed BLAS
+### Added
 
 ### Removed
 
 ### Deprecated
+
+## [24.1.2] - 2024-04-04
+
+### Changed
+
+- Updated to Miniconda 24.1.2-0.
+- Updated to Python 3.12 by default.
+- Updated to use Micromamba by default on Linux.
+- Added BLIS as an allowed BLAS.
+- Enhanced ffnet installation on macOS: The script now conditionally installs ffnet if a gfortran compiler is found.
+
+### Added
+
+- Explicit Conda Packages
+  - haversine
+  - ford
+  - autopep8
+  - mdutils
+  - f90wrap (moved from Pip to Conda)
+- Explicit Pip Packages
+  - wordcloud (moved from Conda to Pip)
+  - meson (required for ffnet)
+
+### Removed
+
+- Explicit Conda Packages
+  - wordcloud (moved to Pip from Conda)
+- Explicit Pip Packages
+  - theano (no longer maintained)
+  - blaze (no longer maintained)
+  - f90wrap (moved to Conda from Pip)
 
 ## [23.5.2] - 2023-10-17
 
