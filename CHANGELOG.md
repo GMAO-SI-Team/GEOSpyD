@@ -11,12 +11,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+### Added
+
+### Removed
+
+### Deprecated
+
+## [24.1.2] - 2024-04-04
+
+### Changed
+
 - Updated to Miniconda 24.1.2-0.
 - Updated to Python 3.12 by default.
 - Updated to use Micromamba by default on Linux.
 - Added BLIS as an allowed BLAS.
-- Added ability for ffnet to install on macOS
-  - Enhanced ffnet installation on macOS: The script now conditionally installs ffnet if a gfortran compiler is found.
+- Enhanced ffnet installation on macOS: The script now conditionally installs ffnet if a gfortran compiler is found.
 
 ### Added
 
@@ -25,9 +34,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - ford
   - autopep8
   - mdutils
-  - f90wrap (moved from pip)
+  - f90wrap (moved from Pip to Conda)
 - Explicit Pip Packages
-  - wordcloud (moved from conda)
+  - wordcloud (moved from Conda to Pip)
   - meson (required for ffnet)
 
 ### Removed
@@ -38,8 +47,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - theano (no longer maintained)
   - blaze (no longer maintained)
   - f90wrap (moved to Conda from Pip)
-
-### Deprecated
 
 ## [23.5.2] - 2023-10-17
 
