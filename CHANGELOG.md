@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use micromamba by default on Linux
 - Add BLIS as allowed BLAS
 - Added ability for ffnet to install on macOS
-  - The script looks for a gfortran compiler and if it finds one, it will install ffnet
+  - Enhanced ffnet installation on macOS: The script now conditionally installs ffnet if a gfortran compiler is found.
 
 ### Added
 
