@@ -635,8 +635,16 @@ then
    # 2. We also need f2py but that is in our install directory bin
    #    so we need to add that to the PATH
    export PATH=$MINICONDA_INSTALLDIR/bin:$PATH
-   # 3. Now we can install ffnet
+   # 3. We also should redefine TMPDIR as on some systems (discover)
+   #    it seems to not work as hoped. So, we create a new directory
+   #    relative to the install script called tmp, and use that.
+   #    It appears meson uses TMPDIR to store its build files.
+   mkdir -p $SCRIPTDIR/tmp-for-ffnet
+   export TMPDIR=$SCRIPTDIR/tmp-for-ffnet
+   # 4. Now we can install ffnet
    $PIP_INSTALL git+https://github.com/mrkwjc/ffnet
+   # 5. We can now remove the tmp directory
+   rm -rf $SCRIPTDIR/tmp-for-ffnet
 fi
 
 # Finally pygrads is not in pip
