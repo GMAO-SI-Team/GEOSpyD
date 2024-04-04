@@ -33,11 +33,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - Explicit Conda Packages
-  - wordcloud (moved to pip)
+  - wordcloud (moved to Pip from Conda)
 - Explicit Pip Packages
   - theano (no longer maintained)
   - blaze (no longer maintained)
-  - f90wrap (moved to conda)
+  - f90wrap (moved to Conda from Pip)
 
 ### Deprecated
 
