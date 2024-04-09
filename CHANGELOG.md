@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
-## [24.1.2] - 2024-04-04
+## [24.1.2] - 2024-04-09
 
 ### Changed
 
@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Explicit Pip Packages
   - wordcloud (moved from Conda to Pip)
   - meson (required for ffnet)
+  - pybufrkit
 
 ### Removed
 
