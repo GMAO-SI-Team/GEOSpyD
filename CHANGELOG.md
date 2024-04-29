@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Use MacOSX matplotlib backend on macOS, still use TkAgg on Linux
+
 ### Added
 
 ### Removed
