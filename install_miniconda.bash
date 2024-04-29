@@ -674,9 +674,14 @@ cd $SCRIPTDIR
 find $MINICONDA_INSTALLDIR/lib -name 'exec_command.py' -print0 | xargs -0 $SED -i -e 's#^\( *\)use_shell = False#&\n\1command.insert(1, "-f")#'
 
 # Edit matplotlibrc to use TkAgg as the default backend for matplotlib
-# as that is the only backend that seems supported on all systems
+# on Linux, but MacOSX on macOS
 # --------------------------------------------------------------------
-find $MINICONDA_INSTALLDIR/lib -name 'matplotlibrc' -print0 | xargs -0 $SED -i -e '/^.*backend/ s%.*\(backend *:\).*%\1 TkAgg%'
+if [[ $ARCH == Darwin ]]
+then
+   find $MINICONDA_INSTALLDIR/lib -name 'matplotlibrc' -print0 | xargs -0 $SED -i -e '/^.*backend/ s%.*\(backend *:\).*%\1 MacOSX%'
+else
+   find $MINICONDA_INSTALLDIR/lib -name 'matplotlibrc' -print0 | xargs -0 $SED -i -e '/^.*backend/ s%.*\(backend *:\).*%\1 TkAgg%'
+fi
 
 # Use conda to output list of packages installed
 # ----------------------------------------------
