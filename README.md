@@ -12,12 +12,12 @@ We do not
 In order to use the install script, you can run:
 
 ```
-./install_miniconda.bash --python_version 3.12 --miniconda_version 24.1.2-0 --prefix /opt/GEOSpyD
+./install_miniconda.bash --python_version 3.12 --miniconda_version 24.4.0-0 --prefix /opt/GEOSpyD
 ```
 
 will create an install at:
 ```
-/opt/GEOSpyD/24.1.2-0_py3.12/YYYY-MM-DD
+/opt/GEOSpyD/24.4.0-0_py3.12/YYYY-MM-DD
 ```
 
 where YYYY-MM-DD is the date of the install. We use a date so that if

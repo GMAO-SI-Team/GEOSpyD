@@ -11,13 +11,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Use MacOSX matplotlib backend on macOS, still use TkAgg on Linux
-
 ### Added
 
 ### Removed
 
 ### Deprecated
+
+## [24.4.0] - 2024-05-30
+
+### Changed
+
+- Updated to Miniconda 24.1.2-0.
+- Use MacOSX matplotlib backend on macOS, still use TkAgg on Linux
+
+### Added
+
+- Explicit Conda Packages
+  - earthaccess
+
+- Explicit Pip Packages
+  - pyephem
 
 ## [24.1.2] - 2024-04-09
 

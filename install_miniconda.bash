@@ -59,7 +59,7 @@ fi
 # -----
 
 EXAMPLE_PY_VERSION="3.12"
-EXAMPLE_MINI_VERSION="24.1.2-0"
+EXAMPLE_MINI_VERSION="24.4.0-0"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
@@ -575,6 +575,7 @@ $PACKAGE_INSTALL haversine
 $PACKAGE_INSTALL ford
 $PACKAGE_INSTALL autopep8
 $PACKAGE_INSTALL mdutils
+$PACKAGE_INSTALL earthaccess
 
 # Only install pythran on linux. On mac it brings in an old clang
 if [[ $MINICONDA_ARCH == Linux ]]
@@ -622,6 +623,7 @@ $PIP_INSTALL yaplon
 $PIP_INSTALL lxml
 $PIP_INSTALL juliandate
 $PIP_INSTALL pybufrkit
+$PIP_INSTALL pyephem
 
 # some packages require a Fortran compiler. This sometimes isn't available
 # on macs (though usually is)
