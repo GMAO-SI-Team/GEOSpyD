@@ -619,6 +619,7 @@ $PACKAGE_INSTALL -c conda-forge/label/renamed nc_time_axis
 # ------------
 
 PIP_INSTALL="$MINICONDA_BINDIR/$PYTHON_EXEC -m pip install"
+PIP_UNINSTALL="$MINICONDA_BINDIR/$PYTHON_EXEC -m pip uninstall -y"
 $PIP_INSTALL PyRTF3 pipenv pymp-pypi rasterio h5py
 $PIP_INSTALL pycircleci metpy siphon questionary xgrads
 $PIP_INSTALL ruamel.yaml
@@ -691,6 +692,14 @@ then
 else
    find $MINICONDA_INSTALLDIR/lib -name 'matplotlibrc' -print0 | xargs -0 $SED -e '/.*backend:/ s/^.*backend:.*/backend: TkAgg/'
 fi
+
+# There currently seems to be a bug with ipython3
+# (see https://github.com/ipython/ipython/issues/14260)
+# the solution seems to be to pip uninstall prompt_toolkit
+# and then reinstall it. This is a temporary fix until
+# the issue is resolved.
+$PIP_UNINSTALL prompt_toolkit
+$PIP_INSTALL prompt_toolkit
 
 # Use conda to output list of packages installed
 # ----------------------------------------------

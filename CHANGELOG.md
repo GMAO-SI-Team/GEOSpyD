@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed another odd libcxx issue between miniconda and conda-forge (involving `tuple`)
 - Use fork of `ffnet` with fix for `setup.py` issue (see https://github.com/mrkwjc/ffnet/pull/11)
+- Fix issue with ipython (see https://github.com/ipython/ipython/issues/14260) by uninstalling
+  and re-installing `prompt_toolkit`
 
 ### Changed
 
