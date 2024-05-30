@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - earthaccess
 - Explicit Pip Packages
   - pyephem
+- Added ephem example
 
 ### Removed
 
