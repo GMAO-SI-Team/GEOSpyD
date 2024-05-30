@@ -27,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Updated to Miniconda 24.4.0-0.
-- Use MacOSX matplotlib backend on macOS, still use TkAgg on Linux
+- Use MacOSX matplotlib backend on macOS and TkAgg on Linux
   - Update sed command to make this change
 
 ### Added
