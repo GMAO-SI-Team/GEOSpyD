@@ -507,6 +507,11 @@ then
          echo "Removing $MINICONDA_INSTALLDIR/include/c++/v1/__string"
          rm $MINICONDA_INSTALLDIR/include/c++/v1/__string
       fi
+      if [[ -f $MINICONDA_INSTALLDIR/include/c++/v1/__tuple ]]
+      then
+         echo "Removing $MINICONDA_INSTALLDIR/include/c++/v1/__tuple"
+         rm $MINICONDA_INSTALLDIR/include/c++/v1/__tuple
+      fi
    fi
 fi
 

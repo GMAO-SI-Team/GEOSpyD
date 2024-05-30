@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [24.4.0] - 2024-05-30
 
+### Fixed
+
+- Fixed another odd libcxx issue between miniconda and conda-forge (involving `tuple`)
+
 ### Changed
 
 - Updated to Miniconda 24.4.0-0.
