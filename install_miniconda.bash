@@ -651,7 +651,7 @@ then
    mkdir -p $SCRIPTDIR/tmp-for-ffnet
    export TMPDIR=$SCRIPTDIR/tmp-for-ffnet
    # 4. Now we can install ffnet
-   $PIP_INSTALL git+https://github.com/mathomp4/ffnet
+   $PIP_INSTALL git+https://github.com/mrkwjc/ffnet
    # 5. We can now remove the tmp directory
    rm -rf $SCRIPTDIR/tmp-for-ffnet
 fi
