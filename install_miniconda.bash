@@ -650,7 +650,7 @@ then
    mkdir -p $SCRIPTDIR/tmp-for-ffnet
    export TMPDIR=$SCRIPTDIR/tmp-for-ffnet
    # 4. Now we can install ffnet
-   $PIP_INSTALL git+https://github.com/mrkwjc/ffnet
+   $PIP_INSTALL git+https://github.com/mathomp4/ffnet
    # 5. We can now remove the tmp directory
    rm -rf $SCRIPTDIR/tmp-for-ffnet
 fi
@@ -676,18 +676,20 @@ find $MINICONDA_INSTALLDIR/lib -name 'gacm.py' -print0 | xargs -0 $SED -i -e '/c
 
 cd $SCRIPTDIR
 
-# Inject Joe Stassi's f2py shell fix into numpy
-# ---------------------------------------------
-find $MINICONDA_INSTALLDIR/lib -name 'exec_command.py' -print0 | xargs -0 $SED -i -e 's#^\( *\)use_shell = False#&\n\1command.insert(1, "-f")#'
-
 # Edit matplotlibrc to use TkAgg as the default backend for matplotlib
 # on Linux, but MacOSX on macOS
 # --------------------------------------------------------------------
+#
+# What we need to do is look for the string "backend:" in matplotlibrc
+# and change line (which might have one or more comment characters at
+# the beginning) to be "backend: MacOSX" on macOS and "backend: TkAgg"
+# on Linux.
+#
 if [[ $ARCH == Darwin ]]
 then
-   find $MINICONDA_INSTALLDIR/lib -name 'matplotlibrc' -print0 | xargs -0 $SED -i -e '/^.*backend/ s%.*\(backend *:\).*%\1 MacOSX%'
+   find $MINICONDA_INSTALLDIR/lib -name 'matplotlibrc' -print0 | xargs -0 $SED -e '/.*backend:/ s/^.*backend:.*/backend: MacOSX/'
 else
-   find $MINICONDA_INSTALLDIR/lib -name 'matplotlibrc' -print0 | xargs -0 $SED -i -e '/^.*backend/ s%.*\(backend *:\).*%\1 TkAgg%'
+   find $MINICONDA_INSTALLDIR/lib -name 'matplotlibrc' -print0 | xargs -0 $SED -e '/.*backend:/ s/^.*backend:.*/backend: TkAgg/'
 fi
 
 # Use conda to output list of packages installed
