@@ -1,5 +1,5 @@
 The command for installing on ford1 is:
 
 ```
-$ ./install_miniconda.bash --python_version 3.12 --miniconda_version 24.1.2-0 --prefix /ford1/share/gmao_SIteam/GEOSpyD
+$ ./install_miniconda.bash --python_version 3.12 --miniconda_version 24.4.0-0 --prefix /ford1/share/gmao_SIteam/GEOSpyD
 ```

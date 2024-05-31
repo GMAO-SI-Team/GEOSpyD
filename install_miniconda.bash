@@ -59,7 +59,7 @@ fi
 # -----
 
 EXAMPLE_PY_VERSION="3.12"
-EXAMPLE_MINI_VERSION="24.1.2-0"
+EXAMPLE_MINI_VERSION="24.4.0-0"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
@@ -507,6 +507,11 @@ then
          echo "Removing $MINICONDA_INSTALLDIR/include/c++/v1/__string"
          rm $MINICONDA_INSTALLDIR/include/c++/v1/__string
       fi
+      if [[ -f $MINICONDA_INSTALLDIR/include/c++/v1/__tuple ]]
+      then
+         echo "Removing $MINICONDA_INSTALLDIR/include/c++/v1/__tuple"
+         rm $MINICONDA_INSTALLDIR/include/c++/v1/__tuple
+      fi
    fi
 fi
 
@@ -575,6 +580,7 @@ $PACKAGE_INSTALL haversine
 $PACKAGE_INSTALL ford
 $PACKAGE_INSTALL autopep8
 $PACKAGE_INSTALL mdutils
+$PACKAGE_INSTALL earthaccess
 
 # Only install pythran on linux. On mac it brings in an old clang
 if [[ $MINICONDA_ARCH == Linux ]]
@@ -613,6 +619,7 @@ $PACKAGE_INSTALL -c conda-forge/label/renamed nc_time_axis
 # ------------
 
 PIP_INSTALL="$MINICONDA_BINDIR/$PYTHON_EXEC -m pip install"
+PIP_UNINSTALL="$MINICONDA_BINDIR/$PYTHON_EXEC -m pip uninstall -y"
 $PIP_INSTALL PyRTF3 pipenv pymp-pypi rasterio h5py
 $PIP_INSTALL pycircleci metpy siphon questionary xgrads
 $PIP_INSTALL ruamel.yaml
@@ -622,6 +629,7 @@ $PIP_INSTALL yaplon
 $PIP_INSTALL lxml
 $PIP_INSTALL juliandate
 $PIP_INSTALL pybufrkit
+$PIP_INSTALL pyephem
 
 # some packages require a Fortran compiler. This sometimes isn't available
 # on macs (though usually is)
@@ -669,19 +677,29 @@ find $MINICONDA_INSTALLDIR/lib -name 'gacm.py' -print0 | xargs -0 $SED -i -e '/c
 
 cd $SCRIPTDIR
 
-# Inject Joe Stassi's f2py shell fix into numpy
-# ---------------------------------------------
-find $MINICONDA_INSTALLDIR/lib -name 'exec_command.py' -print0 | xargs -0 $SED -i -e 's#^\( *\)use_shell = False#&\n\1command.insert(1, "-f")#'
-
 # Edit matplotlibrc to use TkAgg as the default backend for matplotlib
 # on Linux, but MacOSX on macOS
 # --------------------------------------------------------------------
+#
+# What we need to do is look for the string "backend:" in matplotlibrc
+# and change line (which might have one or more comment characters at
+# the beginning) to be "backend: MacOSX" on macOS and "backend: TkAgg"
+# on Linux.
+#
 if [[ $ARCH == Darwin ]]
 then
-   find $MINICONDA_INSTALLDIR/lib -name 'matplotlibrc' -print0 | xargs -0 $SED -i -e '/^.*backend/ s%.*\(backend *:\).*%\1 MacOSX%'
+   find $MINICONDA_INSTALLDIR/lib -name 'matplotlibrc' -print0 | xargs -0 $SED -e '/.*backend:/ s/^.*backend:.*/backend: MacOSX/'
 else
-   find $MINICONDA_INSTALLDIR/lib -name 'matplotlibrc' -print0 | xargs -0 $SED -i -e '/^.*backend/ s%.*\(backend *:\).*%\1 TkAgg%'
+   find $MINICONDA_INSTALLDIR/lib -name 'matplotlibrc' -print0 | xargs -0 $SED -e '/.*backend:/ s/^.*backend:.*/backend: TkAgg/'
 fi
+
+# There currently seems to be a bug with ipython3
+# (see https://github.com/ipython/ipython/issues/14260)
+# the solution seems to be to pip uninstall prompt_toolkit
+# and then reinstall it. This is a temporary fix until
+# the issue is resolved.
+$PIP_UNINSTALL prompt_toolkit
+$PIP_INSTALL prompt_toolkit
 
 # Use conda to output list of packages installed
 # ----------------------------------------------
