@@ -608,6 +608,9 @@ cd $MINICONDA_INSTALLDIR/bin
 /bin/rm -v mpif77  && /bin/ln -sv esmf-mpifort       esmf-mpif77
 /bin/rm -v mpif90  && /bin/ln -sv esmf-mpifort       esmf-mpif90
 
+# We also want to link f2py to f2py3 for Python 3
+/bin/ln -sv f2py f2py3
+
 cd $SCRIPTDIR
 
 # Install weird nc_time_axis package
