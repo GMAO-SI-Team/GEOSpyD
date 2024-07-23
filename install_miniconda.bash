@@ -633,6 +633,7 @@ $PIP_INSTALL lxml
 $PIP_INSTALL juliandate
 $PIP_INSTALL pybufrkit
 $PIP_INSTALL pyephem
+$PIP_INSTALL basemap
 
 # some packages require a Fortran compiler. This sometimes isn't available
 # on macs (though usually is)
