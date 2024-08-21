@@ -11,10 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Update to Miniconda version to 24.5.0-0
 - Make a symlink of `f2py` to `f2py3` to fix an issue with the wrong `f2py` being found sometimes on discover
 
 ### Added
 
+- Explicit Conda Packages
+  - uxarray
 - Explicit Pip Packages
   - basemap
 
