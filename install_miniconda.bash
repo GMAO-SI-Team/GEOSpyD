@@ -59,7 +59,7 @@ fi
 # -----
 
 EXAMPLE_PY_VERSION="3.12"
-EXAMPLE_MINI_VERSION="24.4.0-0"
+EXAMPLE_MINI_VERSION="24.5.0-0"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
@@ -581,6 +581,8 @@ $PACKAGE_INSTALL ford
 $PACKAGE_INSTALL autopep8
 $PACKAGE_INSTALL mdutils
 $PACKAGE_INSTALL earthaccess
+
+$PACKAGE_INSTALL uxarray
 
 # Only install pythran on linux. On mac it brings in an old clang
 if [[ $MINICONDA_ARCH == Linux ]]
