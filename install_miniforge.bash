@@ -3,28 +3,28 @@
 set -Eeuo pipefail
 trap cleanup SIGINT SIGTERM ERR EXIT
 
-# Save user's .condarc for safety using mktemp
+# Save user's .mambarc for safety using mktemp
 # ---------------------------------------------
 
-ORIG_CONDARC=$(mktemp)
-CONDARC_FOUND=FALSE
-if [[ -f ~/.condarc ]]
+ORIG_MAMBARC=$(mktemp)
+MAMBARC_FOUND=FALSE
+if [[ -f ~/.mambarc ]]
 then
-   CONDARC_FOUND=TRUE
-   echo "Found existing .condarc. Saving to $ORIG_CONDARC"
-   cp -v ~/.condarc "$ORIG_CONDARC"
+   MAMBARC_FOUND=TRUE
+   echo "Found existing .mambarc. Saving to $ORIG_MAMBARC"
+   cp -v ~/.mambarc "$ORIG_MAMBARC"
 fi
 
-# The cleanup function will restore the user's .condarc
+# The cleanup function will restore the user's .mambarc
 # -----------------------------------------------------
 cleanup() {
    trap - SIGINT SIGTERM ERR EXIT
    local ret=$?
    echo "Cleaning up..."
-   if [[ $CONDARC_FOUND == TRUE ]]
+   if [[ $MAMBARC_FOUND == TRUE ]]
    then
-      echo "Restoring original .condarc"
-      cp -v "$ORIG_CONDARC" ~/.condarc
+      echo "Restoring original .mambarc"
+      cp -v "$ORIG_MAMBARC" ~/.mambarc
    fi
    exit $ret
 }
@@ -59,22 +59,21 @@ fi
 # -----
 
 EXAMPLE_PY_VERSION="3.12"
-EXAMPLE_MINI_VERSION="24.5.0-0"
+EXAMPLE_MINI_VERSION="24.3.0-0"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
-   echo "Usage: $0 --python_version <python version> --miniconda_version <miniconda_version> --prefix <prefix> [--conda]"
+   echo "Usage: $0 --python_version <python version> --miniforge_version <miniforge> --prefix <prefix> [--micromamba | --mamba] [--blas <blas>]"
    echo ""
    echo "   Required arguments:"
    echo "      --python_version <python version> (e.g., ${EXAMPLE_PY_VERSION})"
-   echo "      --miniconda_version <miniconda_version version> (e.g., ${EXAMPLE_MINI_VERSION})"
+   echo "      --miniforge_version <miniforge_version version> (e.g., ${EXAMPLE_MINI_VERSION})"
    echo "      --prefix <full path to installation directory> (e.g, ${EXAMPLE_INSTALLDIR})"
    echo ""
    echo "   Optional arguments:"
    echo "      --blas <blas> (default: ${BLAS_IMPL}, options: mkl, openblas, accelerate, blis)"
    echo "      --micromamba: Use micromamba installer (default)"
    echo "      --mamba: Use mamba installer"
-   echo "      --conda: Use conda installer (NOT recommended, only for legacy support)"
    echo "      --help: Print this message"
    echo ""
    echo "   By default we use the micromamba installer on both Linux and macOS"
@@ -82,17 +81,17 @@ usage() {
    echo ""
    echo "   NOTE 1: This script installs within ${EXAMPLE_INSTALLDIR} with a path based on:"
    echo ""
-   echo "        1. The Miniconda version"
+   echo "        1. The Miniforge version"
    echo "        2. The Python version"
    echo "        3. The date of the installation"
    echo ""
-   echo "   For example: $0 --python_version ${EXAMPLE_PY_VERSION} --miniconda_version ${EXAMPLE_MINI_VERSION} --prefix ${EXAMPLE_INSTALLDIR}"
+   echo "   For example: $0 --python_version ${EXAMPLE_PY_VERSION} --miniforge_version ${EXAMPLE_MINI_VERSION} --prefix ${EXAMPLE_INSTALLDIR}"
    echo ""
    echo "   will create an install at:"
    echo "       ${EXAMPLE_INSTALLDIR}/${EXAMPLE_MINI_VERSION}_py${EXAMPLE_PY_VERSION}/${EXAMPLE_DATE}"
    echo ""
-   echo "  NOTE 2: This script will create or substitute a .condarc file in the user's home directory."
-   echo "          If you have an existing .condarc file, it will be restored after installation."
+   echo "  NOTE 2: This script will create or substitute a .mambarc file in the user's home directory."
+   echo "          If you have an existing .mambarc file, it will be restored after installation."
    echo "          We do this to ensure that the installation uses conda-forge as the default channel."
 }
 
@@ -139,7 +138,6 @@ fi
 # Command line arguments
 # ----------------------
 
-USE_CONDA=FALSE
 USE_MAMBA=FALSE
 USE_MICROMAMBA=TRUE
 
@@ -150,27 +148,20 @@ do
          PYTHON_VER=$2
          shift
          ;;
-      --miniconda_version)
-         MINICONDA_VER=$2
+      --miniforge_version)
+         MINIFORGE_VER=$2
          shift
          ;;
-      --conda)
-         USE_CONDA=TRUE
-         USE_MAMBA=FALSE
-         USE_MICROMAMBA=FALSE
-         ;;
       --mamba)
-         USE_CONDA=FALSE
          USE_MAMBA=TRUE
          USE_MICROMAMBA=FALSE
          ;;
       --micromamba)
-         USE_CONDA=FALSE
          USE_MAMBA=FALSE
          USE_MICROMAMBA=TRUE
          ;;
       --prefix)
-         MINICONDA_DIR=$2
+         MINIFORGE_DIR=$2
          shift
          ;;
       --blas)
@@ -197,16 +188,16 @@ then
    exit 1
 fi
 
-if [[ -z $MINICONDA_VER ]]
+if [[ -z $MINIFORGE_VER ]]
 then
-   echo "ERROR: Miniconda version not sent in"
+   echo "ERROR: Miniforge version not sent in"
    usage
    exit 1
 fi
 
-if [[ -z $MINICONDA_DIR ]]
+if [[ -z $MINIFORGE_DIR ]]
 then
-   echo "ERROR: Miniconda installation directory not sent in"
+   echo "ERROR: Miniforge installation directory not sent in"
    usage
    exit 1
 fi
@@ -309,7 +300,7 @@ then
 fi
 
 # ---------------------------
-# Miniconda version variables
+# Miniforge version variables
 # ---------------------------
 
 PYTHON_MAJOR_VERSION=${PYTHON_VER:0:1}
@@ -321,17 +312,17 @@ then
 fi
 PYTHON_EXEC=python${PYTHON_MAJOR_VERSION}
 
-MINICONDA_DISTVER=Miniconda${PYTHON_MAJOR_VERSION}
+MINIFORGE_DISTVER=Miniforge${PYTHON_MAJOR_VERSION}
 
-MINICONDA_SRCDIR=${SCRIPTDIR}/$MINICONDA_DISTVER
+MINIFORGE_SRCDIR=${SCRIPTDIR}/$MINIFORGE_DISTVER
 
 # ------------------------------
-# Set the Miniconda Architecture
+# Set the Miniforge Architecture
 # ------------------------------
 
 if [[ $ARCH == Darwin ]]
 then
-   MINICONDA_ARCH=MacOSX
+   MINIFORGE_ARCH=MacOSX
    if [[ $MACH == arm64 ]]
    then
       MICROMAMBA_ARCH=osx-arm64
@@ -341,7 +332,7 @@ then
       MICROMAMBA_ARCH=osx-64
    fi
 else
-   MINICONDA_ARCH=Linux
+   MINIFORGE_ARCH=Linux
    MICROMAMBA_ARCH=linux-64
 fi
 
@@ -349,46 +340,56 @@ fi
 # Create the installtion directory if it does not exist
 # -----------------------------------------------------
 
-if [ ! -d "$MINICONDA_DIR" ]
+if [ ! -d "$MINIFORGE_DIR" ]
 then
-   mkdir -p $MINICONDA_DIR
+   mkdir -p $MINIFORGE_DIR
 fi
 
 DATE=$(date +%F)
-MINICONDA_INSTALLDIR=$MINICONDA_DIR/${MINICONDA_VER}_py${PYTHON_VER}/$DATE
+MINIFORGE_INSTALLDIR=$MINIFORGE_DIR/${MINIFORGE_VER}/$DATE
+MINIFORGE_ENVDIR=$MINIFORGE_INSTALLDIR/envs/py${PYTHON_VER}
 
-if [[ "$MINICONDA_VER" == "latest" ]]
+# The installers are located at:
+#   macOS Arm: https://github.com/conda-forge/miniforge/releases/download/24.3.0-0/Miniforge3-24.3.0-0-MacOSX-arm64.sh
+#   Linux x86_64: https://github.com/conda-forge/miniforge/releases/download/24.3.0-0/Miniforge3-24.3.0-0-Linux-x86_64.sh
+
+CANONICAL_INSTALLER=${MINIFORGE_DISTVER}-${MINIFORGE_VER}-${MINIFORGE_ARCH}-${MACH}.sh
+if [[ "$MINIFORGE_VER" == "latest" ]]
 then
-   CANONICAL_INSTALLER=${MINICONDA_DISTVER}-${MINICONDA_VER}-${MINICONDA_ARCH}-${MACH}.sh
-   DATED_INSTALLER=${MINICONDA_DISTVER}-${MINICONDA_VER}-${MINICONDA_ARCH}-${MACH}.${DATE}.sh
-else
-   PYTHON_VER_WITHOUT_DOT="${PYTHON_VER//./}"
-   CANONICAL_INSTALLER=${MINICONDA_DISTVER}-py${PYTHON_VER_WITHOUT_DOT}_${MINICONDA_VER}-${MINICONDA_ARCH}-${MACH}.sh
+   DATED_INSTALLER=${MINIFORGE_DISTVER}-${MINIFORGE_VER}-${MINIFORGE_ARCH}-${MACH}.${DATE}.sh
 fi
 
-echo "MINICONDA_SRCDIR     = $MINICONDA_SRCDIR"
-echo "CANONICAL_INSTALLER  = $MINICONDA_SRCDIR/$CANONICAL_INSTALLER"
-if [[ "$MINICONDA_VER" == "latest" ]]
+echo "MINIFORGE_SRCDIR     = $MINIFORGE_SRCDIR"
+echo "CANONICAL_INSTALLER  = $MINIFORGE_SRCDIR/$CANONICAL_INSTALLER"
+if [[ "$MINIFORGE_VER" == "latest" ]]
 then
-   echo "DATED_INSTALLER      = $MINICONDA_SRCDIR/$DATED_INSTALLER"
+   echo "DATED_INSTALLER      = $MINIFORGE_SRCDIR/$DATED_INSTALLER"
 fi
-echo "Miniconda will be installed in $MINICONDA_INSTALLDIR"
+echo "Miniforge $MINIFORGE_VER for Python $PYTHON_VER will be installed in $MINIFORGE_ENVDIR"
 
-if [[ -d $MINICONDA_INSTALLDIR ]]
+if [[ -d $MINIFORGE_INSTALLDIR ]]
 then
-   echo "ERROR: $MINICONDA_INSTALLDIR already exists! Exiting!"
+   echo "ERROR: $MINIFORGE_INSTALLDIR already exists! Exiting!"
    exit 9
 fi
 
-if [[ ! -f $MINICONDA_SRCDIR/$CANONICAL_INSTALLER ]]
+if [[ -d $MINIFORGE_ENVDIR ]]
 then
-   REPO=https://repo.anaconda.com/miniconda
-   (cd $MINICONDA_SRCDIR; curl -O $REPO/$CANONICAL_INSTALLER)
+   echo "ERROR: $MINIFORGE_ENVDIR already exists! Exiting!"
+   exit 9
 fi
 
-if [[ "$MINICONDA_VER" == "latest" ]]
+if [[ ! -f $MINIFORGE_SRCDIR/$CANONICAL_INSTALLER ]]
 then
-   mv -v $MINICONDA_SRCDIR/$CANONICAL_INSTALLER $MINICONDA_SRCDIR/$DATED_INSTALLER
+   REPO=https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VER}
+   echo "Downloading $CANONICAL_INSTALLER from $REPO"
+   echo "Running curl -OL $REPO/$CANONICAL_INSTALLER"
+   (cd $MINIFORGE_SRCDIR; curl -OL $REPO/$CANONICAL_INSTALLER)
+fi
+
+if [[ "$MINIFORGE_VER" == "latest" ]]
+then
+   mv -v $MINIFORGE_SRCDIR/$CANONICAL_INSTALLER $MINIFORGE_SRCDIR/$DATED_INSTALLER
    INSTALLER=$DATED_INSTALLER
 else
    INSTALLER=$CANONICAL_INSTALLER
@@ -398,36 +399,33 @@ fi
 # -----------------------------------------------
 
 # Now create the good one (we restore the old one at the end)
-cat << EOF > ~/.condarc
-# Temporary condarc from install_miniconda.bash
+cat << EOF > ~/.mambarc
+# Temporary mambarc from install_miniforge.bash
 channels:
   - conda-forge
-  - defaults
+  - nodefaults
 channel_priority: strict
 EOF
 
-# -----------------
-# Install Miniconda
-# -----------------
+# ----------------------
+# Install Miniforge Base
+# ----------------------
 
-bash $MINICONDA_SRCDIR/$INSTALLER -b -p $MINICONDA_INSTALLDIR
+bash $MINIFORGE_SRCDIR/$INSTALLER -b -p $MINIFORGE_INSTALLDIR
 
-MINICONDA_BINDIR=$MINICONDA_INSTALLDIR/bin
+MINIFORGE_BINDIR=$MINIFORGE_INSTALLDIR/bin
 
-# Now install regular conda packages
+# --------------------------------
+# Create the Miniforge environment
+# --------------------------------
+
+$MINIFORGE_BINDIR/mamba create -y -p $MINIFORGE_ENVDIR python=${PYTHON_VER}
+
+# Now install regular mamba packages
 # ----------------------------------
 
-function conda_install {
-   CONDA_INSTALL_COMMAND="$MINICONDA_BINDIR/conda install -y"
-
-   echo
-   echo "(conda) Now installing $*"
-   $CONDA_INSTALL_COMMAND $*
-   echo
-}
-
 function mamba_install {
-   MAMBA_INSTALL_COMMAND="$MINICONDA_BINDIR/mamba install -y"
+   MAMBA_INSTALL_COMMAND="$MINIFORGE_BINDIR/mamba install -p $MINIFORGE_ENVDIR -y"
 
    echo
    echo "(mamba) Now installing $*"
@@ -436,7 +434,7 @@ function mamba_install {
 }
 
 function micromamba_install {
-   MICROMAMBA_INSTALL_COMMAND="$MINICONDA_BINDIR/micromamba -p $MINICONDA_INSTALLDIR install -y"
+   MICROMAMBA_INSTALL_COMMAND="$MINIFORGE_BINDIR/micromamba -p $MINIFORGE_ENVDIR install -y"
 
    echo
    echo "(micromamba) Now installing $*"
@@ -444,16 +442,7 @@ function micromamba_install {
    echo
 }
 
-if [[ "$USE_CONDA" == "TRUE" ]]
-then
-   echo "=== Using conda as package manager ==="
-
-   PACKAGE_INSTALL=conda_install
-
-   # Update conda
-   $MINICONDA_BINDIR/conda update -y -n base -c defaults conda
-
-elif [[ "$USE_MICROMAMBA" == "TRUE" ]]
+if [[ "$USE_MICROMAMBA" == "TRUE" ]]
 then
    echo "=== Using micromamba as package manager ==="
 
@@ -464,26 +453,26 @@ then
 
    echo "=== Installing micromamba ==="
    MICROMAMBA_URL="https://micro.mamba.pm/api/micromamba/${MICROMAMBA_ARCH}/latest"
-   curl -Ls ${MICROMAMBA_URL} | tar -C $MINICONDA_INSTALLDIR -xvj bin/micromamba
+   curl -Ls ${MICROMAMBA_URL} | tar -C $MINIFORGE_INSTALLDIR -xvj bin/micromamba
+
 elif [[ "$USE_MAMBA" == "TRUE" ]]
 then
    echo "=== Using mamba as package manager ==="
-
-   conda_install mamba
    PACKAGE_INSTALL=mamba_install
+
 else
    echo "ERROR: No package manager selected! We should not get here. Exiting!"
    exit 9
 fi
 
-# --------------------
-# CONDA/MAMBA PACKAGES
-# --------------------
+# --------------
+# MAMBA PACKAGES
+# --------------
 
 echo "BLAS_IMPL: $BLAS_IMPL"
 $PACKAGE_INSTALL "libblas=*=*${BLAS_IMPL}"
 
-# in libcxx 14.0.6 (from miniconda), __string is a file, but in 16.0.6
+# in libcxx 14.0.6 (from miniforge), __string is a file, but in 16.0.6
 # it is a directory so, in order for libcxx to be updated, we have to
 # remove it because the updater will fail
 #
@@ -491,26 +480,26 @@ $PACKAGE_INSTALL "libblas=*=*${BLAS_IMPL}"
 
 if [[ $ARCH == Darwin ]]
 then
-   # First let's check the version of libcxx installed by asking conda
+   # First let's check the version of libcxx installed by asking mamba
 
-   LIBCXX_VERSION=$($MINICONDA_INSTALLDIR/bin/conda list libcxx | grep libcxx | awk '{print $2}')
+   LIBCXX_VERSION=$($MINIFORGE_INSTALLDIR/bin/mamba list libcxx | grep libcxx | awk '{print $2}')
 
    # This is the version X.Y.Z and we want to do things only if X is 14 as it's a directory in 15+
    # Let's use bash to extract the first number
    LIBCXX_MAJOR_VERSION=${LIBCXX_VERSION%%.*}
-   MINICONDA_MAJOR_VERSION=${MINICONDA_VER%%.*}
+   MINIFORGE_MAJOR_VERSION=${MINIFORGE_VER%%.*}
 
-   if [[ $LIBCXX_MAJOR_VERSION -lt 15 && $MINICONDA_MAJOR_VERSION -ge 23 ]]
+   if [[ $LIBCXX_MAJOR_VERSION -lt 15 && $MINIFORGE_MAJOR_VERSION -ge 23 ]]
    then
-      if [[ -f $MINICONDA_INSTALLDIR/include/c++/v1/__string ]]
+      if [[ -f $MINIFORGE_INSTALLDIR/include/c++/v1/__string ]]
       then
-         echo "Removing $MINICONDA_INSTALLDIR/include/c++/v1/__string"
-         rm $MINICONDA_INSTALLDIR/include/c++/v1/__string
+         echo "Removing $MINIFORGE_INSTALLDIR/include/c++/v1/__string"
+         rm $MINIFORGE_INSTALLDIR/include/c++/v1/__string
       fi
-      if [[ -f $MINICONDA_INSTALLDIR/include/c++/v1/__tuple ]]
+      if [[ -f $MINIFORGE_INSTALLDIR/include/c++/v1/__tuple ]]
       then
-         echo "Removing $MINICONDA_INSTALLDIR/include/c++/v1/__tuple"
-         rm $MINICONDA_INSTALLDIR/include/c++/v1/__tuple
+         echo "Removing $MINIFORGE_INSTALLDIR/include/c++/v1/__tuple"
+         rm $MINIFORGE_INSTALLDIR/include/c++/v1/__tuple
       fi
    fi
 fi
@@ -585,7 +574,7 @@ $PACKAGE_INSTALL earthaccess
 $PACKAGE_INSTALL uxarray
 
 # Only install pythran on linux. On mac it brings in an old clang
-if [[ $MINICONDA_ARCH == Linux ]]
+if [[ $MINIFORGE_ARCH == Linux ]]
 then
    $PACKAGE_INSTALL f90wrap
    $PACKAGE_INSTALL pythran
@@ -594,7 +583,7 @@ fi
 # esmpy installs mpi. We don't want any of those in the bin dir
 # so we rename and relink. First we rename the files:
 
-cd $MINICONDA_INSTALLDIR/bin
+cd $MINIFORGE_INSTALLDIR/bin
 
 /bin/mv -v mpicc         esmf-mpicc
 /bin/mv -v mpicxx        esmf-mpicxx
@@ -623,8 +612,8 @@ $PACKAGE_INSTALL -c conda-forge/label/renamed nc_time_axis
 # PIP PACKAGES
 # ------------
 
-PIP_INSTALL="$MINICONDA_BINDIR/$PYTHON_EXEC -m pip install"
-PIP_UNINSTALL="$MINICONDA_BINDIR/$PYTHON_EXEC -m pip uninstall -y"
+PIP_INSTALL="$MINIFORGE_BINDIR/$PYTHON_EXEC -m pip install"
+PIP_UNINSTALL="$MINIFORGE_BINDIR/$PYTHON_EXEC -m pip uninstall -y"
 $PIP_INSTALL PyRTF3 pipenv pymp-pypi rasterio h5py
 $PIP_INSTALL pycircleci metpy siphon questionary xgrads
 $PIP_INSTALL ruamel.yaml
@@ -649,7 +638,7 @@ then
    $PIP_INSTALL meson
    # 2. We also need f2py but that is in our install directory bin
    #    so we need to add that to the PATH
-   export PATH=$MINICONDA_INSTALLDIR/bin:$PATH
+   export PATH=$MINIFORGE_INSTALLDIR/bin:$PATH
    # 3. We also should redefine TMPDIR as on some systems (discover)
    #    it seems to not work as hoped. So, we create a new directory
    #    relative to the install script called tmp, and use that.
@@ -666,20 +655,20 @@ fi
 # -----------------------------
 
 PYGRADS_VERSION="pygrads-3.0.b1"
-if [[ -d $MINICONDA_SRCDIR/$PYGRADS_VERSION ]]
+if [[ -d $MINIFORGE_SRCDIR/$PYGRADS_VERSION ]]
 then
-   rm -rf $MINICONDA_SRCDIR/$PYGRADS_VERSION
+   rm -rf $MINIFORGE_SRCDIR/$PYGRADS_VERSION
 fi
 
-tar xf $MINICONDA_SRCDIR/$PYGRADS_VERSION.tar.gz -C $MINICONDA_SRCDIR
+tar xf $MINIFORGE_SRCDIR/$PYGRADS_VERSION.tar.gz -C $MINIFORGE_SRCDIR
 
-cd $MINICONDA_SRCDIR/$PYGRADS_VERSION
+cd $MINIFORGE_SRCDIR/$PYGRADS_VERSION
 
-$MINICONDA_BINDIR/$PYTHON_EXEC setup.py install
+$MINIFORGE_BINDIR/$PYTHON_EXEC setup.py install
 
 # Inject code fix for spectral
 # ----------------------------
-find $MINICONDA_INSTALLDIR/lib -name 'gacm.py' -print0 | xargs -0 $SED -i -e '/cm.spectral,/ s/spectral/nipy_spectral/'
+find $MINIFORGE_INSTALLDIR/lib -name 'gacm.py' -print0 | xargs -0 $SED -i -e '/cm.spectral,/ s/spectral/nipy_spectral/'
 
 cd $SCRIPTDIR
 
@@ -694,9 +683,9 @@ cd $SCRIPTDIR
 #
 if [[ $ARCH == Darwin ]]
 then
-   find $MINICONDA_INSTALLDIR/lib -name 'matplotlibrc' -print0 | xargs -0 $SED -e '/.*backend:/ s/^.*backend:.*/backend: MacOSX/'
+   find $MINIFORGE_INSTALLDIR/lib -name 'matplotlibrc' -print0 | xargs -0 $SED -e '/.*backend:/ s/^.*backend:.*/backend: MacOSX/'
 else
-   find $MINICONDA_INSTALLDIR/lib -name 'matplotlibrc' -print0 | xargs -0 $SED -e '/.*backend:/ s/^.*backend:.*/backend: TkAgg/'
+   find $MINIFORGE_INSTALLDIR/lib -name 'matplotlibrc' -print0 | xargs -0 $SED -e '/.*backend:/ s/^.*backend:.*/backend: TkAgg/'
 fi
 
 # There currently seems to be a bug with ipython3
@@ -707,14 +696,14 @@ fi
 $PIP_UNINSTALL prompt_toolkit
 $PIP_INSTALL prompt_toolkit
 
-# Use conda to output list of packages installed
+# Use mamba to output list of packages installed
 # ----------------------------------------------
-cd $MINICONDA_INSTALLDIR
-./bin/conda list --explicit > distribution_spec_file.txt
-./bin/conda list > conda_list_packages.txt
+cd $MINIFORGE_INSTALLDIR
+./bin/mamba list --explicit > distribution_spec_file.txt
+./bin/mamba list > mamba_list_packages.txt
 ./bin/pip freeze > pip_freeze_packages.txt
 
-# Restore User's .condarc using cleanup function
+# Restore User's .mambarc using cleanup function
 # ----------------------------------------------
 cleanup
 

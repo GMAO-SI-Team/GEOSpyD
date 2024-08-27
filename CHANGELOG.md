@@ -11,7 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Update to Miniconda version to 24.5.0-0
+- Migrated to use Miniforge instead of Miniconda
+- "Update" to Miniforge version to 24.3.0-0
+  - Note: Miniforge is often behind Miniconda in version numbers, so this is not a downgrade, but rather
+    the latest version of Miniforge
 - Make a symlink of `f2py` to `f2py3` to fix an issue with the wrong `f2py` being found sometimes on discover
 
 ### Added
