@@ -349,10 +349,6 @@ DATE=$(date +%F)
 MINIFORGE_INSTALLDIR=$MINIFORGE_DIR/${MINIFORGE_VER}/$DATE
 MINIFORGE_ENVDIR=$MINIFORGE_INSTALLDIR/envs/py${PYTHON_VER}
 
-# The installers are located at:
-#   macOS Arm: https://github.com/conda-forge/miniforge/releases/download/24.3.0-0/Miniforge3-24.3.0-0-MacOSX-arm64.sh
-#   Linux x86_64: https://github.com/conda-forge/miniforge/releases/download/24.3.0-0/Miniforge3-24.3.0-0-Linux-x86_64.sh
-
 CANONICAL_INSTALLER=${MINIFORGE_DISTVER}-${MINIFORGE_VER}-${MINIFORGE_ARCH}-${MACH}.sh
 if [[ "$MINIFORGE_VER" == "latest" ]]
 then
@@ -366,12 +362,6 @@ then
    echo "DATED_INSTALLER      = $MINIFORGE_SRCDIR/$DATED_INSTALLER"
 fi
 echo "Miniforge $MINIFORGE_VER for Python $PYTHON_VER will be installed in $MINIFORGE_ENVDIR"
-
-if [[ -d $MINIFORGE_INSTALLDIR ]]
-then
-   echo "ERROR: $MINIFORGE_INSTALLDIR already exists! Exiting!"
-   exit 9
-fi
 
 if [[ -d $MINIFORGE_ENVDIR ]]
 then
@@ -411,7 +401,10 @@ EOF
 # Install Miniforge Base
 # ----------------------
 
-bash $MINIFORGE_SRCDIR/$INSTALLER -b -p $MINIFORGE_INSTALLDIR
+if [[ ! -d $MINIFORGE_INSTALLDIR ]]
+then
+   bash $MINIFORGE_SRCDIR/$INSTALLER -b -p $MINIFORGE_INSTALLDIR
+fi
 
 MINIFORGE_BINDIR=$MINIFORGE_INSTALLDIR/bin
 
@@ -434,7 +427,7 @@ function mamba_install {
 }
 
 function micromamba_install {
-   MICROMAMBA_INSTALL_COMMAND="$MINIFORGE_BINDIR/micromamba -p $MINIFORGE_ENVDIR install -y"
+   MICROMAMBA_INSTALL_COMMAND="$MINIFORGE_BINDIR/micromamba install -p $MINIFORGE_ENVDIR -y"
 
    echo
    echo "(micromamba) Now installing $*"
