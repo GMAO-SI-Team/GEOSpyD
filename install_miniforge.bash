@@ -311,6 +311,7 @@ then
    exit 2
 fi
 PYTHON_EXEC=python${PYTHON_MAJOR_VERSION}
+PYTHON_VER_WITHOUT_DOT="${PYTHON_VER//./}"
 
 MINIFORGE_DISTVER=Miniforge${PYTHON_MAJOR_VERSION}
 
@@ -462,6 +463,8 @@ fi
 # MAMBA PACKAGES
 # --------------
 
+$PACKAGE_INSTALL mamba
+
 echo "BLAS_IMPL: $BLAS_IMPL"
 $PACKAGE_INSTALL "libblas=*=*${BLAS_IMPL}"
 
@@ -475,7 +478,7 @@ if [[ $ARCH == Darwin ]]
 then
    # First let's check the version of libcxx installed by asking mamba
 
-   LIBCXX_VERSION=$($MINIFORGE_INSTALLDIR/bin/mamba list libcxx | grep libcxx | awk '{print $2}')
+   LIBCXX_VERSION=$($MINIFORGE_ENVDIR/bin/mamba list libcxx | grep libcxx | awk '{print $2}')
 
    # This is the version X.Y.Z and we want to do things only if X is 14 as it's a directory in 15+
    # Let's use bash to extract the first number
@@ -484,15 +487,15 @@ then
 
    if [[ $LIBCXX_MAJOR_VERSION -lt 15 && $MINIFORGE_MAJOR_VERSION -ge 23 ]]
    then
-      if [[ -f $MINIFORGE_INSTALLDIR/include/c++/v1/__string ]]
+      if [[ -f $MINIFORGE_ENVDIR/include/c++/v1/__string ]]
       then
-         echo "Removing $MINIFORGE_INSTALLDIR/include/c++/v1/__string"
-         rm $MINIFORGE_INSTALLDIR/include/c++/v1/__string
+         echo "Removing $MINIFORGE_ENVDIR/include/c++/v1/__string"
+         rm $MINIFORGE_ENVDIR/include/c++/v1/__string
       fi
-      if [[ -f $MINIFORGE_INSTALLDIR/include/c++/v1/__tuple ]]
+      if [[ -f $MINIFORGE_ENVDIR/include/c++/v1/__tuple ]]
       then
-         echo "Removing $MINIFORGE_INSTALLDIR/include/c++/v1/__tuple"
-         rm $MINIFORGE_INSTALLDIR/include/c++/v1/__tuple
+         echo "Removing $MINIFORGE_ENVDIR/include/c++/v1/__tuple"
+         rm $MINIFORGE_ENVDIR/include/c++/v1/__tuple
       fi
    fi
 fi
@@ -529,7 +532,7 @@ else
    fi
 fi
 
-$PACKAGE_INSTALL pyasn1 redis redis-py ujson configobj argcomplete biopython
+$PACKAGE_INSTALL pyasn1 ujson configobj argcomplete biopython
 # mdp only exists from 3.10 and older
 if [[ $PYTHON_VER_WITHOUT_DOT -le 310 ]]
 then
@@ -544,7 +547,7 @@ if [[ $MACH != arm64 ]]
 then
    $PACKAGE_INSTALL get_terminal_size
 fi
-$PACKAGE_INSTALL mock sphinxcontrib pytables
+$PACKAGE_INSTALL mock pytables
 $PACKAGE_INSTALL pydap
 $PACKAGE_INSTALL gsw
 
@@ -576,7 +579,7 @@ fi
 # esmpy installs mpi. We don't want any of those in the bin dir
 # so we rename and relink. First we rename the files:
 
-cd $MINIFORGE_INSTALLDIR/bin
+cd $MINIFORGE_ENVDIR/bin
 
 /bin/mv -v mpicc         esmf-mpicc
 /bin/mv -v mpicxx        esmf-mpicxx
@@ -607,6 +610,15 @@ $PACKAGE_INSTALL -c conda-forge/label/renamed nc_time_axis
 
 PIP_INSTALL="$MINIFORGE_BINDIR/$PYTHON_EXEC -m pip install"
 PIP_UNINSTALL="$MINIFORGE_BINDIR/$PYTHON_EXEC -m pip uninstall -y"
+
+# There currently seems to be a bug with ipython3
+# (see https://github.com/ipython/ipython/issues/14260)
+# the solution seems to be to pip uninstall prompt_toolkit
+# and then reinstall it. This is a temporary fix until
+# the issue is resolved.
+$PIP_UNINSTALL prompt_toolkit
+$PIP_INSTALL prompt_toolkit
+
 $PIP_INSTALL PyRTF3 pipenv pymp-pypi rasterio h5py
 $PIP_INSTALL pycircleci metpy siphon questionary xgrads
 $PIP_INSTALL ruamel.yaml
@@ -618,6 +630,7 @@ $PIP_INSTALL juliandate
 $PIP_INSTALL pybufrkit
 $PIP_INSTALL pyephem
 $PIP_INSTALL basemap
+$PIP_INSTALL redis
 
 # some packages require a Fortran compiler. This sometimes isn't available
 # on macs (though usually is)
@@ -631,7 +644,7 @@ then
    $PIP_INSTALL meson
    # 2. We also need f2py but that is in our install directory bin
    #    so we need to add that to the PATH
-   export PATH=$MINIFORGE_INSTALLDIR/bin:$PATH
+   export PATH=$MINIFORGE_ENVDIR/bin:$PATH
    # 3. We also should redefine TMPDIR as on some systems (discover)
    #    it seems to not work as hoped. So, we create a new directory
    #    relative to the install script called tmp, and use that.
@@ -661,7 +674,7 @@ $MINIFORGE_BINDIR/$PYTHON_EXEC setup.py install
 
 # Inject code fix for spectral
 # ----------------------------
-find $MINIFORGE_INSTALLDIR/lib -name 'gacm.py' -print0 | xargs -0 $SED -i -e '/cm.spectral,/ s/spectral/nipy_spectral/'
+find $MINIFORGE_ENVDIR/lib -name 'gacm.py' -print0 | xargs -0 $SED -i -e '/cm.spectral,/ s/spectral/nipy_spectral/'
 
 cd $SCRIPTDIR
 
@@ -676,22 +689,14 @@ cd $SCRIPTDIR
 #
 if [[ $ARCH == Darwin ]]
 then
-   find $MINIFORGE_INSTALLDIR/lib -name 'matplotlibrc' -print0 | xargs -0 $SED -e '/.*backend:/ s/^.*backend:.*/backend: MacOSX/'
+   find $MINIFORGE_ENVDIR/lib -name 'matplotlibrc' -print0 | xargs -0 $SED -e '/.*backend:/ s/^.*backend:.*/backend: MacOSX/'
 else
-   find $MINIFORGE_INSTALLDIR/lib -name 'matplotlibrc' -print0 | xargs -0 $SED -e '/.*backend:/ s/^.*backend:.*/backend: TkAgg/'
+   find $MINIFORGE_ENVDIR/lib -name 'matplotlibrc' -print0 | xargs -0 $SED -e '/.*backend:/ s/^.*backend:.*/backend: TkAgg/'
 fi
-
-# There currently seems to be a bug with ipython3
-# (see https://github.com/ipython/ipython/issues/14260)
-# the solution seems to be to pip uninstall prompt_toolkit
-# and then reinstall it. This is a temporary fix until
-# the issue is resolved.
-$PIP_UNINSTALL prompt_toolkit
-$PIP_INSTALL prompt_toolkit
 
 # Use mamba to output list of packages installed
 # ----------------------------------------------
-cd $MINIFORGE_INSTALLDIR
+cd $MINIFORGE_ENVDIR
 ./bin/mamba list --explicit > distribution_spec_file.txt
 ./bin/mamba list > mamba_list_packages.txt
 ./bin/pip freeze > pip_freeze_packages.txt

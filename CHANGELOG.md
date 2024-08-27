@@ -19,12 +19,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Explicit Conda Packages
+- Explicit Mamba Packages
   - uxarray
 - Explicit Pip Packages
   - basemap
+  - redis (moved from Mamba to Pip)
 
 ### Removed
+
+- Removed `--conda` option
+- Explicit Mamba Packages
+  - redis (moved from Mamba to Pip)
+  - redis-py (seems not to exist in the conda-forge channel or in PyPI)
+  - sphinxcontrib (seems not to exist in the conda-forge channel or in PyPI)
 
 ### Deprecated
 
