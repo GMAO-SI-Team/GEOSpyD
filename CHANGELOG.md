@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Explicit Pip Packages
   - basemap
   - redis (moved from Mamba to Pip)
+- Added basemap example
 
 ### Removed
 
