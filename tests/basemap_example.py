@@ -15,7 +15,9 @@ map.drawmapboundary(fill_color='aqua')
 map.drawmeridians(np.arange(0,360,30))
 map.drawparallels(np.arange(-90,90,30))
 # make up some data on a regular lat/lon grid.
-nlats = 73; nlons = 145; delta = 2.*np.pi/(nlons-1)
+nlats = 73
+nlons = 145
+delta = 2.*np.pi/(nlons-1)
 lats = (0.5*np.pi-delta*np.indices((nlats,nlons))[0,:,:])
 lons = (delta*np.indices((nlats,nlons))[1,:,:])
 wave = 0.75*(np.sin(2.*lats)**8*np.cos(4.*lons))
