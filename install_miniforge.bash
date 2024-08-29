@@ -3,8 +3,8 @@
 set -Eeuo pipefail
 trap cleanup SIGINT SIGTERM ERR EXIT
 
-# Save user's .mambarc for safety using mktemp
-# ---------------------------------------------
+# Save user's .mambarc and .condarc for safety using mktemp
+# ---------------------------------------------------------
 
 ORIG_MAMBARC=$(mktemp)
 MAMBARC_FOUND=FALSE
@@ -15,8 +15,17 @@ then
    cp -v ~/.mambarc "$ORIG_MAMBARC"
 fi
 
-# The cleanup function will restore the user's .mambarc
-# -----------------------------------------------------
+ORIG_CONDARC=$(mktemp)
+CONDARC_FOUND=FALSE
+if [[ -f ~/.condarc ]]
+then
+   CONDARC_FOUND=TRUE
+   echo "Found existing .condarc. Saving to $ORIG_CONDARC"
+   cp -v ~/.condarc "$ORIG_CONDARC"
+fi
+
+# The cleanup function will restore the user's .mambarc and .condarc
+# ------------------------------------------------------------------
 cleanup() {
    trap - SIGINT SIGTERM ERR EXIT
    local ret=$?
@@ -25,6 +34,11 @@ cleanup() {
    then
       echo "Restoring original .mambarc"
       cp -v "$ORIG_MAMBARC" ~/.mambarc
+   fi
+   if [[ $CONDARC_FOUND == TRUE ]]
+   then
+      echo "Restoring original .condarc"
+      cp -v "$ORIG_CONDARC" ~/.condarc
    fi
    exit $ret
 }
@@ -90,9 +104,11 @@ usage() {
    echo "   will create an install at:"
    echo "       ${EXAMPLE_INSTALLDIR}/${EXAMPLE_MINI_VERSION}_py${EXAMPLE_PY_VERSION}/${EXAMPLE_DATE}"
    echo ""
-   echo "  NOTE 2: This script will create or substitute a .mambarc file in the user's home directory."
-   echo "          If you have an existing .mambarc file, it will be restored after installation."
-   echo "          We do this to ensure that the installation uses conda-forge as the default channel."
+   echo "  NOTE 2: This script will create or substitute a .mambarc    "
+   echo "  and .condarc file in the user's home directory.  If you     "
+   echo "  have an existing .mambarc and/or .condarc file, it will be  "
+   echo "  restored after installation.  We do this to ensure that the "
+   echo "  installation uses conda-forge as the default channel.       "
 }
 
 if [[ $# -lt 4 ]]
@@ -396,6 +412,16 @@ channels:
   - conda-forge
   - nodefaults
 channel_priority: strict
+show_channel_urls: True
+EOF
+
+cat << EOF > ~/.condarc
+# Temporary condarc from install_miniforge.bash
+channels:
+  - conda-forge
+  - nodefaults
+channel_priority: strict
+show_channel_urls: True
 EOF
 
 # ----------------------
@@ -692,13 +718,28 @@ $PIP_INSTALL prompt_toolkit
 # Use mamba to output list of packages installed
 # ----------------------------------------------
 cd $MINIFORGE_ENVDIR
-./bin/mamba list --explicit > distribution_spec_file.txt
-./bin/mamba list > mamba_list_packages.txt
+./bin/mamba list --show-channel-urls --explicit > distribution_spec_file.txt
+./bin/mamba list --show-channel-urls > mamba_list_packages.txt
 ./bin/pip freeze > pip_freeze_packages.txt
 
-# Restore User's .mambarc using cleanup function
-# ----------------------------------------------
+# Restore User's .mambarc and .condarc using cleanup function
+# -----------------------------------------------------------
 cleanup
+
+# As a final check to make sure the defaults channel has not
+# infected the environment, we will check the mamba_list_packages.txt
+# and make sure 'defaults' does not appear in the channel list (fourth
+# field)
+# -------------------------------------------------------------------
+
+if grep -q defaults mamba_list_packages.txt
+then
+   echo "ERROR: The defaults channel is in the mamba_list_packages.txt file"
+   echo "       This is not allowed. The offending package(s) are:"
+   grep defaults mamba_list_packages.txt
+   echo "       Please fix this and try again."
+   exit 9
+fi
 
 cd $SCRIPTDIR
 
