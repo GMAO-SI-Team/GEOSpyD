@@ -542,11 +542,6 @@ $PACKAGE_INSTALL requests-toolbelt twine wxpython
 $PACKAGE_INSTALL sockjs-tornado sphinx_rtd_theme django
 $PACKAGE_INSTALL pypng seaborn astropy
 $PACKAGE_INSTALL fastcache greenlet imageio jbig lzo
-# get_terminal_size are not on arm64
-if [[ $MACH != arm64 ]]
-then
-   $PACKAGE_INSTALL get_terminal_size
-fi
 $PACKAGE_INSTALL mock pytables
 $PACKAGE_INSTALL pydap
 $PACKAGE_INSTALL gsw

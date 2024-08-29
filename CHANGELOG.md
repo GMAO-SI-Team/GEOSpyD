@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - redis (moved from Mamba to Pip)
   - redis-py (seems not to exist in the conda-forge channel or in PyPI)
   - sphinxcontrib (seems not to exist in the conda-forge channel or in PyPI)
+  - get_terminal_size (built-in to Python 3.3+ in the `shutil` module)
 
 ### Deprecated
 
