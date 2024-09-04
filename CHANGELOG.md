@@ -12,12 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Migrated to use Miniforge instead of Miniconda
-- "Update" to Miniforge version to 24.3.0-0
+- "Update" to Miniforge version to 24.7.1-0
   - Note: Miniforge is often behind Miniconda in version numbers, so this is not a downgrade, but rather
     the latest version of Miniforge
 - Make a symlink of `f2py` to `f2py3` to fix an issue with the wrong `f2py` being found sometimes on discover
 - Update both `.condarc` and `.mambarc` to use the `conda-forge` channel as the default channel
 - Add a test at the end to ensure no `defaults` channel packages are installed
+- Add `-ffnet-hack` for a hack to install `ffnet` on bucy (nothing else seems to need it)
+  - This flag uses a fork of ffnet with hardcoded references to gfortran
 
 ### Added
 

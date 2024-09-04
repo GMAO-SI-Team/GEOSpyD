@@ -73,11 +73,11 @@ fi
 # -----
 
 EXAMPLE_PY_VERSION="3.12"
-EXAMPLE_MINI_VERSION="24.5.0-0"
+EXAMPLE_MINI_VERSION="24.7.1-0"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
-   echo "Usage: $0 --python_version <python version> --miniforge_version <miniforge> --prefix <prefix> [--micromamba | --mamba] [--blas <blas>]"
+   echo "Usage: $0 --python_version <python version> --miniforge_version <miniforge> --prefix <prefix> [--micromamba | --mamba] [--blas <blas>] [--ffnet-hack]"
    echo ""
    echo "   Required arguments:"
    echo "      --python_version <python version> (e.g., ${EXAMPLE_PY_VERSION})"
@@ -88,6 +88,7 @@ usage() {
    echo "      --blas <blas> (default: ${BLAS_IMPL}, options: mkl, openblas, accelerate, blis)"
    echo "      --micromamba: Use micromamba installer (default)"
    echo "      --mamba: Use mamba installer"
+   echo "      --ffnet-hack: Install ffnet from fork (used on Bucy due to odd issue not finding gfortran)"
    echo "      --help: Print this message"
    echo ""
    echo "   By default we use the micromamba installer on both Linux and macOS"
@@ -156,6 +157,7 @@ fi
 
 USE_MAMBA=FALSE
 USE_MICROMAMBA=TRUE
+FFNET_HACK=FALSE
 
 while [[ $# -gt 0 ]]
 do
@@ -175,6 +177,9 @@ do
       --micromamba)
          USE_MAMBA=FALSE
          USE_MICROMAMBA=TRUE
+         ;;
+      --ffnet-hack)
+         FFNET_HACK=TRUE
          ;;
       --prefix)
          MINIFORGE_DIR=$2
@@ -665,7 +670,12 @@ then
    mkdir -p $SCRIPTDIR/tmp-for-ffnet
    export TMPDIR=$SCRIPTDIR/tmp-for-ffnet
    # 4. Now we can install ffnet
-   $PIP_INSTALL git+https://github.com/mrkwjc/ffnet
+   if [[ $FFNET_HACK == TRUE ]]
+   then
+      $PIP_INSTALL git+https://github.com/mathomp4/ffnet@force-env-gfortran
+   else
+      $PIP_INSTALL git+https://github.com/mrkwjc/ffnet
+   fi
    # 5. We can now remove the tmp directory
    rm -rf $SCRIPTDIR/tmp-for-ffnet
 fi
