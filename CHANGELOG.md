@@ -11,6 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+### Added
+
+### Removed
+
+### Deprecated
+
+## [24.7.0] - 2024-09-10
+
+### Changed
+
 - Migrated to use Miniforge instead of Miniconda
 - "Update" to Miniforge version to 24.7.1-0
   - Note: Miniforge is often behind Miniconda in version numbers, so this is not a downgrade, but rather
@@ -38,8 +48,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - redis-py (seems not to exist in the conda-forge channel or in PyPI)
   - sphinxcontrib (seems not to exist in the conda-forge channel or in PyPI)
   - get_terminal_size (built-in to Python 3.3+ in the `shutil` module)
-
-### Deprecated
 
 ## [24.4.0] - 2024-05-30
 
