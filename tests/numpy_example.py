@@ -47,10 +47,10 @@ def eigen_decomposition(size, n=10):
 def main():
     print('Numpy config')
     print(np.__config__.show())
-    vector_mul(size=8192, n=50)
-    matrix_mul(size=8192, n=50)
-    svd_decomposition(2048, n=50)
-    eigen_decomposition(2048, n=50)
+    vector_mul(size=1024, n=50)
+    matrix_mul(size=1024, n=50)
+    svd_decomposition(512, n=50)
+    eigen_decomposition(512, n=50)
 
 
 if __name__ == '__main__':

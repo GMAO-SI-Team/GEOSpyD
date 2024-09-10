@@ -1,3 +1,4 @@
 xor.*
 __pycache__/
 *.py[cod]
+*.png

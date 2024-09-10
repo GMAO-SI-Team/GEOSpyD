@@ -1,3 +1,6 @@
 *.log
 pygrads-3.0.b1/
 Miniconda?-*.sh
+Miniforge?-*.sh
+Mambaforge?-*.sh
+
