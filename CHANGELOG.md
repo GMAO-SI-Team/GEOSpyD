@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
-## [24.7.0] - 2024-09-10
+## [24.7.0] - 2024-09-12
 
 ### Changed
 
@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Explicit Pip Packages
   - basemap
   - redis (moved from Mamba to Pip)
+  - Flask
 - Added basemap example
 
 ### Removed
