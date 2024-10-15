@@ -9,7 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix for new odd `micromamba` behaviors
+  - Set `MAMBA_ROOT_PREFIX`
+  - Set `use_lockfiles: False` in `.mambarc`
+
 ### Changed
+
+- Update example Miniconda version to 24.7.1-2
 
 ### Added
 
