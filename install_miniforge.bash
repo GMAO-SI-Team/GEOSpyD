@@ -547,7 +547,7 @@ $PACKAGE_INSTALL virtualenv pipenv configargparse
 $PACKAGE_INSTALL psycopg2 gdal xarray geotiff plotly
 $PACKAGE_INSTALL iris pyhdf pip biggus hpccm cdsapi
 $PACKAGE_INSTALL babel beautifulsoup4 colorama gmp jupyter jupyterlab
-$PACKAGE_INSTALL movingpandas geoviews hvplot geopandas bokeh
+$PACKAGE_INSTALL movingpandas geoviews hvplot">=0.11.0" geopandas bokeh
 $PACKAGE_INSTALL intake intake-parquet intake-xarray
 
 # Looks like mo_pack, libmo_pack, pyspharm, windspharm are not available on arm64
