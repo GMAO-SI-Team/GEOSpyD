@@ -73,7 +73,7 @@ fi
 # -----
 
 EXAMPLE_PY_VERSION="3.12"
-EXAMPLE_MINI_VERSION="24.7.1-0"
+EXAMPLE_MINI_VERSION="24.7.1-2"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
@@ -418,6 +418,7 @@ channels:
   - nodefaults
 channel_priority: strict
 show_channel_urls: True
+use_lockfiles: False
 EOF
 
 cat << EOF > ~/.condarc
@@ -427,6 +428,7 @@ channels:
   - nodefaults
 channel_priority: strict
 show_channel_urls: True
+use_lockfiles: False
 EOF
 
 # ----------------------
@@ -437,6 +439,8 @@ if [[ ! -d $MINIFORGE_INSTALLDIR ]]
 then
    bash $MINIFORGE_SRCDIR/$INSTALLER -b -p $MINIFORGE_INSTALLDIR
 fi
+
+export MAMBA_ROOT_PREFIX=$MINIFORGE_INSTALLDIR
 
 MINIFORGE_BINDIR=$MINIFORGE_INSTALLDIR/bin
 
