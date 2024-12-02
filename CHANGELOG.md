@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Update example Miniforge version to 24.9.0-0
+- Update example Miniforge version to 24.9.2-0
 - Pin `hvplot` version to ">=0.11.0" (see [movingpandas#326](https://github.com/movingpandas/movingpandas/issues/326#issuecomment-2457862112))
 
 
