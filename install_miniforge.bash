@@ -73,7 +73,7 @@ fi
 # -----
 
 EXAMPLE_PY_VERSION="3.12"
-EXAMPLE_MINI_VERSION="24.7.1-2"
+EXAMPLE_MINI_VERSION="24.9.2-0"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
@@ -547,8 +547,7 @@ $PACKAGE_INSTALL virtualenv pipenv configargparse
 $PACKAGE_INSTALL psycopg2 gdal xarray geotiff plotly
 $PACKAGE_INSTALL iris pyhdf pip biggus hpccm cdsapi
 $PACKAGE_INSTALL babel beautifulsoup4 colorama gmp jupyter jupyterlab
-# We need to pin hvplot due to https://github.com/movingpandas/movingpandas/issues/326
-$PACKAGE_INSTALL movingpandas geoviews hvplot=0.8.3 geopandas bokeh
+$PACKAGE_INSTALL movingpandas geoviews hvplot">=0.11.0" geopandas bokeh
 $PACKAGE_INSTALL intake intake-parquet intake-xarray
 
 # Looks like mo_pack, libmo_pack, pyspharm, windspharm are not available on arm64
