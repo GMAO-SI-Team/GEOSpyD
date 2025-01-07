@@ -12,14 +12,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix for new odd `micromamba` behaviors
   - Set `MAMBA_ROOT_PREFIX`
   - Set `use_lockfiles: False` in `.mambarc`
+- Fix some issues using `mamba list` to list packages
 
 ### Changed
 
-- Update example Miniforge version to 24.9.2-0
+- Update example Miniforge version to 24.11.2-1
 - Pin `hvplot` version to ">=0.11.0" (see [movingpandas#326](https://github.com/movingpandas/movingpandas/issues/326#issuecomment-2457862112))
 
-
 ### Added
+
+- Explicit Mamba Packages
+  - h5netcdf
 
 ### Removed
 
