@@ -73,7 +73,7 @@ fi
 # -----
 
 EXAMPLE_PY_VERSION="3.12"
-EXAMPLE_MINI_VERSION="24.9.2-0"
+EXAMPLE_MINI_VERSION="24.11.2-1"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
@@ -369,7 +369,8 @@ fi
 
 DATE=$(date +%F)
 MINIFORGE_INSTALLDIR=$MINIFORGE_DIR/${MINIFORGE_VER}/$DATE
-MINIFORGE_ENVDIR=$MINIFORGE_INSTALLDIR/envs/py${PYTHON_VER}
+MINIFORGE_ENVNAME=py${PYTHON_VER}
+MINIFORGE_ENVDIR=$MINIFORGE_INSTALLDIR/envs/${MINIFORGE_ENVNAME}
 
 CANONICAL_INSTALLER=${MINIFORGE_DISTVER}-${MINIFORGE_VER}-${MINIFORGE_ARCH}-${MACH}.sh
 if [[ "$MINIFORGE_VER" == "latest" ]]
@@ -540,12 +541,14 @@ $PACKAGE_INSTALL xesmf
 $PACKAGE_INSTALL pytest
 $PACKAGE_INSTALL xgcm
 $PACKAGE_INSTALL s3fs boto3
+$PACKAGE_INSTALL pip pipenv
 
-$PACKAGE_INSTALL numpy scipy numba
-$PACKAGE_INSTALL netcdf4 cartopy proj matplotlib
-$PACKAGE_INSTALL virtualenv pipenv configargparse
+$PACKAGE_INSTALL numpy scipy
+$PACKAGE_INSTALL numba
+$PACKAGE_INSTALL netcdf4 cartopy proj matplotlib h5netcdf
+$PACKAGE_INSTALL virtualenv configargparse
 $PACKAGE_INSTALL psycopg2 gdal xarray geotiff plotly
-$PACKAGE_INSTALL iris pyhdf pip biggus hpccm cdsapi
+$PACKAGE_INSTALL iris pyhdf biggus hpccm cdsapi
 $PACKAGE_INSTALL babel beautifulsoup4 colorama gmp jupyter jupyterlab
 $PACKAGE_INSTALL movingpandas geoviews hvplot">=0.11.0" geopandas bokeh
 $PACKAGE_INSTALL intake intake-parquet intake-xarray
@@ -732,8 +735,8 @@ $PIP_INSTALL prompt_toolkit
 # Use mamba to output list of packages installed
 # ----------------------------------------------
 cd $MINIFORGE_ENVDIR
-./bin/mamba list --show-channel-urls --explicit > distribution_spec_file.txt
-./bin/mamba list --show-channel-urls > mamba_list_packages.txt
+$MINIFORGE_BINDIR/mamba list -n $MINIFORGE_ENVNAME --show-channel-urls --explicit > distribution_spec_file.txt
+$MINIFORGE_BINDIR/mamba list -n $MINIFORGE_ENVNAME --show-channel-urls > mamba_list_packages.txt
 ./bin/pip freeze > pip_freeze_packages.txt
 
 # Restore User's .mambarc and .condarc using cleanup function
