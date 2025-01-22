@@ -656,6 +656,7 @@ $PIP_INSTALL pyephem
 $PIP_INSTALL basemap
 $PIP_INSTALL redis
 $PIP_INSTALL Flask
+$PIP_INSTALL goes2go
 
 # some packages require a Fortran compiler. This sometimes isn't available
 # on macs (though usually is)

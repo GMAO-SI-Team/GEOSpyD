@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Explicit Mamba Packages
   - h5netcdf
+- Explicit Pip Packages
+  - goes2go
 
 ### Removed
 
