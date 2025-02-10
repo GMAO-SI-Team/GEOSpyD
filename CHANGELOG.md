@@ -22,7 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added new `--basemap` option to install the basemap package
-  - NOTE: Doing this will downgrade numpy to v1. Thus, you cannot install packages that depend on numpy v2 (e.g., skimpy)
+  - NOTE: Doing this will downgrade numpy to v1. Thus, you cannot install packages that depend on numpy v2 (e.g., skimpy).
+    For now we do *NOT* default to having basemap installed. Hopefully this is temporary until such support is added
+    (see https://github.com/matplotlib/basemap/pull/611)
 - Explicit Mamba Packages
   - h5netcdf
   - skimpy (only if not installing basemap)
