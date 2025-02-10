@@ -77,7 +77,8 @@ EXAMPLE_MINI_VERSION="24.11.2-1"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
-   echo "Usage: $0 --python_version <python version> --miniforge_version <miniforge> --prefix <prefix> [--micromamba | --mamba] [--blas <blas>] [--ffnet-hack]"
+   echo "Usage: $0 --python_version <python version> --miniforge_version <miniforge> --prefix <prefix>"
+   echo "                   [--micromamba | --mamba] [--blas <blas>] [--ffnet-hack] [--basemap]"
    echo ""
    echo "   Required arguments:"
    echo "      --python_version <python version> (e.g., ${EXAMPLE_PY_VERSION})"
@@ -89,6 +90,7 @@ usage() {
    echo "      --micromamba: Use micromamba installer (default)"
    echo "      --mamba: Use mamba installer"
    echo "      --ffnet-hack: Install ffnet from fork (used on Bucy due to odd issue not finding gfortran)"
+   echo "      --basemap: Install basemap (which downgrades numpy to v1 which prevents some packages from installing)"
    echo "      --help: Print this message"
    echo ""
    echo "   By default we use the micromamba installer on both Linux and macOS"
@@ -158,6 +160,7 @@ fi
 USE_MAMBA=FALSE
 USE_MICROMAMBA=TRUE
 FFNET_HACK=FALSE
+INSTALL_BASEMAP=FALSE
 
 while [[ $# -gt 0 ]]
 do
@@ -180,6 +183,9 @@ do
          ;;
       --ffnet-hack)
          FFNET_HACK=TRUE
+         ;;
+      --basemap)
+         INSTALL_BASEMAP=TRUE
          ;;
       --prefix)
          MINIFORGE_DIR=$2
@@ -551,6 +557,13 @@ $PACKAGE_INSTALL psycopg2 gdal xarray geotiff plotly
 $PACKAGE_INSTALL iris pyhdf biggus hpccm cdsapi
 $PACKAGE_INSTALL babel beautifulsoup4 colorama gmp jupyter jupyterlab
 $PACKAGE_INSTALL movingpandas geoviews hvplot">=0.11.0" geopandas bokeh
+# We only install skimpy if the user does not ask for basemap, as it downgrades numpy
+# to v1. So if asked we install it, if not, we can install other
+# packages that need numpy v2 (e.g., skimpy)
+if [[ $INSTALL_BASEMAP == FALSE ]]
+then
+   $PACKAGE_INSTALL skimpy
+fi
 $PACKAGE_INSTALL intake intake-parquet intake-xarray
 
 # Looks like mo_pack, libmo_pack, pyspharm, windspharm are not available on arm64
@@ -653,7 +666,13 @@ $PIP_INSTALL lxml
 $PIP_INSTALL juliandate
 $PIP_INSTALL pybufrkit
 $PIP_INSTALL pyephem
-$PIP_INSTALL basemap
+# We only install Basemap if the user asks as it downgrades numpy
+# to v1. So if asked we install it, if not, we can install other
+# packages that need numpy v2 (e.g., skimpy)
+if [[ $INSTALL_BASEMAP == TRUE ]]
+then
+   $PIP_INSTALL basemap
+fi
 $PIP_INSTALL redis
 $PIP_INSTALL Flask
 $PIP_INSTALL goes2go

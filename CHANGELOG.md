@@ -21,8 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added new `--basemap` option to install the basemap package
+  - NOTE: Doing this will downgrade numpy to v1. Thus, you cannot install packages that depend on numpy v2 (e.g., skimpy)
 - Explicit Mamba Packages
   - h5netcdf
+  - skimpy (only if not installing basemap)
 - Explicit Pip Packages
   - goes2go
 
