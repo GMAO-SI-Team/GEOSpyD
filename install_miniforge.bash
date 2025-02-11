@@ -660,7 +660,12 @@ $PIP_INSTALL PyRTF3 pipenv pymp-pypi rasterio h5py
 $PIP_INSTALL pycircleci metpy siphon questionary xgrads
 $PIP_INSTALL ruamel.yaml
 $PIP_INSTALL xgboost
-$PIP_INSTALL tensorflow evidential-deep-learning silence_tensorflow
+# At the moment tensorflow does not support Python 3.13
+if [[ $PYTHON_VER_WITHOUT_DOT -lt 313 ]]
+then
+   $PIP_INSTALL tensorflow evidential-deep-learning silence_tensorflow
+fi
+$PIP_INSTALL torch
 $PIP_INSTALL yaplon
 $PIP_INSTALL lxml
 $PIP_INSTALL juliandate
