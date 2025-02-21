@@ -661,6 +661,7 @@ $PIP_INSTALL pycircleci metpy siphon questionary xgrads
 $PIP_INSTALL ruamel.yaml
 $PIP_INSTALL xgboost
 # At the moment tensorflow does not support Python 3.13
+# See https://github.com/tensorflow/tensorflow/issues/78774
 if [[ $PYTHON_VER_WITHOUT_DOT -lt 313 ]]
 then
    $PIP_INSTALL tensorflow evidential-deep-learning silence_tensorflow
@@ -682,34 +683,46 @@ $PIP_INSTALL redis
 $PIP_INSTALL Flask
 $PIP_INSTALL goes2go
 
-# some packages require a Fortran compiler. This sometimes isn't available
-# on macs (though usually is)
-if [[ $FORTRAN_AVAILABLE == TRUE ]]
+# In testing Python 3.13 doesn't build ffnet. Not sure why
+# yet but a tracking issue is at: https://github.com/mrkwjc/ffnet/issues/13
+# Until then, do not install ffnet on Python 3.13
+
+if [[ $PYTHON_VER_WITHOUT_DOT -lt 313 ]]
 then
-   # we need to install ffnet from https://github.com/mrkwjc/ffnet.git
-   # This is because the version in PyPI is not compatible with Python 3
-   # and latest scipy
-   #
-   # 1. This package now requires meson to build (for Python 3.12)
-   $PIP_INSTALL meson
-   # 2. We also need f2py but that is in our install directory bin
-   #    so we need to add that to the PATH
-   export PATH=$MINIFORGE_ENVDIR/bin:$PATH
-   # 3. We also should redefine TMPDIR as on some systems (discover)
-   #    it seems to not work as hoped. So, we create a new directory
-   #    relative to the install script called tmp, and use that.
-   #    It appears meson uses TMPDIR to store its build files.
-   mkdir -p $SCRIPTDIR/tmp-for-ffnet
-   export TMPDIR=$SCRIPTDIR/tmp-for-ffnet
-   # 4. Now we can install ffnet
-   if [[ $FFNET_HACK == TRUE ]]
+
+   # some packages require a Fortran compiler. This sometimes isn't available
+   # on macs (though usually is)
+   if [[ $FORTRAN_AVAILABLE == TRUE ]]
    then
-      $PIP_INSTALL git+https://github.com/mathomp4/ffnet@force-env-gfortran
-   else
-      $PIP_INSTALL git+https://github.com/mrkwjc/ffnet
+      echo "We have a Fortran compiler and are Python 3.12 or older. Installing ffnet"
+      # we need to install ffnet from https://github.com/mrkwjc/ffnet.git
+      # This is because the version in PyPI is not compatible with Python 3
+      # and latest scipy
+      #
+      # 1. This package now requires meson to build (for Python 3.12)
+      $PIP_INSTALL meson
+      # 2. We also need f2py but that is in our install directory bin
+      #    so we need to add that to the PATH
+      export PATH=$MINIFORGE_ENVDIR/bin:$PATH
+      # 3. We also should redefine TMPDIR as on some systems (discover)
+      #    it seems to not work as hoped. So, we create a new directory
+      #    relative to the install script called tmp, and use that.
+      #    It appears meson uses TMPDIR to store its build files.
+      mkdir -p $SCRIPTDIR/tmp-for-ffnet
+      export TMPDIR=$SCRIPTDIR/tmp-for-ffnet
+      # 4. Now we can install ffnet
+      if [[ $FFNET_HACK == TRUE ]]
+      then
+         $PIP_INSTALL git+https://github.com/mathomp4/ffnet@force-env-gfortran
+      else
+         $PIP_INSTALL git+https://github.com/mrkwjc/ffnet
+      fi
+      # 5. We can now remove the tmp directory
+      rm -rf $SCRIPTDIR/tmp-for-ffnet
    fi
-   # 5. We can now remove the tmp directory
-   rm -rf $SCRIPTDIR/tmp-for-ffnet
+else
+   echo "Python 3.13 does not yet build ffnet. See https://github.com/mrkwjc/ffnet/issues/13"
+   echo "Skipping ffnet installation. If you need it, please use Python 3.12 or older"
 fi
 
 # Finally pygrads is not in pip

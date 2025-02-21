@@ -18,7 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Update example Miniforge version to 24.11.3-0
 - Pin `hvplot` version to ">=0.11.0" (see [movingpandas#326](https://github.com/movingpandas/movingpandas/issues/326#issuecomment-2457862112))
-- Only install `tensorflow` packages if Python 3.12 or lower. It has issues with Python 3.13 at the moment
+- Issues with Python 3.13
+  - Only install `tensorflow` packages if Python 3.12 or lower. It has issues with Python 3.13 at the moment (see https://github.com/tensorflow/tensorflow/issues/78774)
+  - Only install `ffnet` if Python 3.12 or lower. It has issues with Python 3.13 at the moment (see https://github.com/mrkwjc/ffnet/issues/13)
 
 ### Added
 
