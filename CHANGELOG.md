@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - torch
 - Explicit Pip Packages
   - goes2go
+- Add new cartopy test
 
 ### Removed
 
