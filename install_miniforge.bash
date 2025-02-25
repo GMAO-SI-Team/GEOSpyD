@@ -73,11 +73,12 @@ fi
 # -----
 
 EXAMPLE_PY_VERSION="3.12"
-EXAMPLE_MINI_VERSION="24.9.2-0"
+EXAMPLE_MINI_VERSION="24.11.3-0"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
-   echo "Usage: $0 --python_version <python version> --miniforge_version <miniforge> --prefix <prefix> [--micromamba | --mamba] [--blas <blas>] [--ffnet-hack]"
+   echo "Usage: $0 --python_version <python version> --miniforge_version <miniforge> --prefix <prefix>"
+   echo "                   [--micromamba | --mamba] [--blas <blas>] [--ffnet-hack] [--basemap]"
    echo ""
    echo "   Required arguments:"
    echo "      --python_version <python version> (e.g., ${EXAMPLE_PY_VERSION})"
@@ -89,6 +90,7 @@ usage() {
    echo "      --micromamba: Use micromamba installer (default)"
    echo "      --mamba: Use mamba installer"
    echo "      --ffnet-hack: Install ffnet from fork (used on Bucy due to odd issue not finding gfortran)"
+   echo "      --basemap: Install basemap (which downgrades numpy to v1 which prevents some packages from installing)"
    echo "      --help: Print this message"
    echo ""
    echo "   By default we use the micromamba installer on both Linux and macOS"
@@ -158,6 +160,7 @@ fi
 USE_MAMBA=FALSE
 USE_MICROMAMBA=TRUE
 FFNET_HACK=FALSE
+INSTALL_BASEMAP=FALSE
 
 while [[ $# -gt 0 ]]
 do
@@ -180,6 +183,9 @@ do
          ;;
       --ffnet-hack)
          FFNET_HACK=TRUE
+         ;;
+      --basemap)
+         INSTALL_BASEMAP=TRUE
          ;;
       --prefix)
          MINIFORGE_DIR=$2
@@ -369,7 +375,8 @@ fi
 
 DATE=$(date +%F)
 MINIFORGE_INSTALLDIR=$MINIFORGE_DIR/${MINIFORGE_VER}/$DATE
-MINIFORGE_ENVDIR=$MINIFORGE_INSTALLDIR/envs/py${PYTHON_VER}
+MINIFORGE_ENVNAME=py${PYTHON_VER}
+MINIFORGE_ENVDIR=$MINIFORGE_INSTALLDIR/envs/${MINIFORGE_ENVNAME}
 
 CANONICAL_INSTALLER=${MINIFORGE_DISTVER}-${MINIFORGE_VER}-${MINIFORGE_ARCH}-${MACH}.sh
 if [[ "$MINIFORGE_VER" == "latest" ]]
@@ -540,14 +547,23 @@ $PACKAGE_INSTALL xesmf
 $PACKAGE_INSTALL pytest
 $PACKAGE_INSTALL xgcm
 $PACKAGE_INSTALL s3fs boto3
+$PACKAGE_INSTALL pip pipenv
 
-$PACKAGE_INSTALL numpy scipy numba
-$PACKAGE_INSTALL netcdf4 cartopy proj matplotlib
-$PACKAGE_INSTALL virtualenv pipenv configargparse
+$PACKAGE_INSTALL numpy scipy
+$PACKAGE_INSTALL numba
+$PACKAGE_INSTALL netcdf4 cartopy proj matplotlib h5netcdf
+$PACKAGE_INSTALL virtualenv configargparse
 $PACKAGE_INSTALL psycopg2 gdal xarray geotiff plotly
-$PACKAGE_INSTALL iris pyhdf pip biggus hpccm cdsapi
+$PACKAGE_INSTALL iris pyhdf biggus hpccm cdsapi
 $PACKAGE_INSTALL babel beautifulsoup4 colorama gmp jupyter jupyterlab
 $PACKAGE_INSTALL movingpandas geoviews hvplot">=0.11.0" geopandas bokeh
+# We only install skimpy if the user does not ask for basemap, as it downgrades numpy
+# to v1. So if asked we install it, if not, we can install other
+# packages that need numpy v2 (e.g., skimpy)
+if [[ $INSTALL_BASEMAP == FALSE ]]
+then
+   $PACKAGE_INSTALL skimpy
+fi
 $PACKAGE_INSTALL intake intake-parquet intake-xarray
 
 # Looks like mo_pack, libmo_pack, pyspharm, windspharm are not available on arm64
@@ -644,26 +660,50 @@ $PIP_INSTALL PyRTF3 pipenv pymp-pypi rasterio h5py
 $PIP_INSTALL pycircleci metpy siphon questionary xgrads
 $PIP_INSTALL ruamel.yaml
 $PIP_INSTALL xgboost
-$PIP_INSTALL tensorflow evidential-deep-learning silence_tensorflow
+# At the moment tensorflow does not support Python 3.13
+# See https://github.com/tensorflow/tensorflow/issues/78774
+if [[ $PYTHON_VER_WITHOUT_DOT -lt 313 ]]
+then
+   $PIP_INSTALL tensorflow evidential-deep-learning silence_tensorflow
+fi
+$PIP_INSTALL torch
 $PIP_INSTALL yaplon
 $PIP_INSTALL lxml
 $PIP_INSTALL juliandate
 $PIP_INSTALL pybufrkit
 $PIP_INSTALL pyephem
-$PIP_INSTALL basemap
+# We only install Basemap if the user asks as it downgrades numpy
+# to v1. So if asked we install it, if not, we can install other
+# packages that need numpy v2 (e.g., skimpy)
+if [[ $INSTALL_BASEMAP == TRUE ]]
+then
+   $PIP_INSTALL basemap
+fi
 $PIP_INSTALL redis
 $PIP_INSTALL Flask
+$PIP_INSTALL goes2go
 
 # some packages require a Fortran compiler. This sometimes isn't available
 # on macs (though usually is)
 if [[ $FORTRAN_AVAILABLE == TRUE ]]
 then
+   echo "We have a Fortran compiler and are Python 3.12 or older. Installing ffnet"
    # we need to install ffnet from https://github.com/mrkwjc/ffnet.git
    # This is because the version in PyPI is not compatible with Python 3
    # and latest scipy
    #
    # 1. This package now requires meson to build (for Python 3.12)
    $PIP_INSTALL meson
+   # 1b. If we are running Python 3.13 or higher, we need to explicitly
+   #     install setuptools and wheel as they are not installed by default
+   if [[ $PYTHON_VER_WITHOUT_DOT -ge 313 ]]
+   then
+      $PIP_INSTALL setuptools wheel
+      # We also need a new flag for Python 3.13
+      EXTRA_PIP_FLAGS='--no-use-pep517'
+   else
+      EXTRA_PIP_FLAGS=''
+   fi
    # 2. We also need f2py but that is in our install directory bin
    #    so we need to add that to the PATH
    export PATH=$MINIFORGE_ENVDIR/bin:$PATH
@@ -676,9 +716,9 @@ then
    # 4. Now we can install ffnet
    if [[ $FFNET_HACK == TRUE ]]
    then
-      $PIP_INSTALL git+https://github.com/mathomp4/ffnet@force-env-gfortran
+      $PIP_INSTALL $EXTRA_PIP_FLAGS git+https://github.com/mathomp4/ffnet@force-env-gfortran
    else
-      $PIP_INSTALL git+https://github.com/mrkwjc/ffnet
+      $PIP_INSTALL $EXTRA_PIP_FLAGS git+https://github.com/mrkwjc/ffnet
    fi
    # 5. We can now remove the tmp directory
    rm -rf $SCRIPTDIR/tmp-for-ffnet
@@ -732,8 +772,8 @@ $PIP_INSTALL prompt_toolkit
 # Use mamba to output list of packages installed
 # ----------------------------------------------
 cd $MINIFORGE_ENVDIR
-./bin/mamba list --show-channel-urls --explicit > distribution_spec_file.txt
-./bin/mamba list --show-channel-urls > mamba_list_packages.txt
+$MINIFORGE_BINDIR/mamba list -n $MINIFORGE_ENVNAME --show-channel-urls --explicit > distribution_spec_file.txt
+$MINIFORGE_BINDIR/mamba list -n $MINIFORGE_ENVNAME --show-channel-urls > mamba_list_packages.txt
 ./bin/pip freeze > pip_freeze_packages.txt
 
 # Restore User's .mambarc and .condarc using cleanup function

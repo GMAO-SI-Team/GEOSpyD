@@ -12,14 +12,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix for new odd `micromamba` behaviors
   - Set `MAMBA_ROOT_PREFIX`
   - Set `use_lockfiles: False` in `.mambarc`
+- Fix some issues using `mamba list` to list packages
 
 ### Changed
 
-- Update example Miniforge version to 24.9.2-0
+- Update example Miniforge version to 24.11.3-0
 - Pin `hvplot` version to ">=0.11.0" (see [movingpandas#326](https://github.com/movingpandas/movingpandas/issues/326#issuecomment-2457862112))
-
+- Issues with Python 3.13
+  - Only install `tensorflow` packages if Python 3.12 or lower. It currently has issues with Python 3.13 (see https://github.com/tensorflow/tensorflow/issues/78774)
 
 ### Added
+
+- Added new `--basemap` option to install the basemap package
+  - NOTE: Doing this will downgrade numpy to v1. Thus, you cannot install packages that depend on numpy v2 (e.g., skimpy).
+    For now, we do *NOT* default to having basemap installed. Hopefully, this is temporary until such support is added
+    (see https://github.com/matplotlib/basemap/pull/611)
+- Explicit Mamba Packages
+  - h5netcdf
+  - skimpy (only if not installing basemap)
+  - torch
+- Explicit Pip Packages
+  - goes2go
+- Add new cartopy test
 
 ### Removed
 
