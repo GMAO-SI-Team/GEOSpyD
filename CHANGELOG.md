@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### Changed
+
+### Added
+
+### Removed
+
+### Deprecated
+
+## [24.11.3] - 2025-02-25
+
+### Fixed
+
 - Fix for new odd `micromamba` behaviors
   - Set `MAMBA_ROOT_PREFIX`
   - Set `use_lockfiles: False` in `.mambarc`
@@ -34,10 +46,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Explicit Pip Packages
   - goes2go
 - Add new cartopy test
-
-### Removed
-
-### Deprecated
 
 ## [24.7.0] - 2024-09-12
 
