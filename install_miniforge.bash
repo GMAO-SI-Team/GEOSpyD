@@ -615,6 +615,7 @@ $PACKAGE_INSTALL earthaccess
 $PACKAGE_INSTALL uxarray
 
 # We seem to need to require sqlite 3.48.0 *exactly* for ipython3
+# NOTE: This might need to be revisited in the next version
 $PACKAGE_INSTALL sqlite"==3.48.0"
 
 # Only install pythran on linux. On mac it brings in an old clang
