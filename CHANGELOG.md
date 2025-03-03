@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
-## [24.11.3] - 2025-02-25
+## [24.11.3] - 2025-03-03
 
 ### Fixed
 
@@ -32,6 +32,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pin `hvplot` version to ">=0.11.0" (see [movingpandas#326](https://github.com/movingpandas/movingpandas/issues/326#issuecomment-2457862112))
 - Issues with Python 3.13
   - Only install `tensorflow` packages if Python 3.12 or lower. It currently has issues with Python 3.13 (see https://github.com/tensorflow/tensorflow/issues/78774)
+- Pin `sqlite` to version 3.48.0
+  - It was found that with some older and newer versions of `sqlite`, `ipython` would not run and would throw errors
+    as seen in [this issue](https://stackoverflow.com/questions/78990030/undefined-symbol-sqlite3-deserialize-in-jupyter-notebook-visual-studio-code)
+    Pinning to 3.48.0 seems to fix this issue for now.
 
 ### Added
 
