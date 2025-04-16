@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Explicit Pip Packages
+  - nco
+  - cdo
+
 ### Removed
 
 ### Deprecated
