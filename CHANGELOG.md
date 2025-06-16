@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update example Python version to 3.13
 - Re-enable `basemap` installation by default
   - This is now possible as `basemap` has been updated to support `numpy` v2
+- Rename `always_circular_stereo.py` to `cartopy_example.py`
 
 ### Added
 
