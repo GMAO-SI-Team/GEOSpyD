@@ -26,8 +26,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Explicit Pip Packages
   - nco
   - cdo
+- Add new pytorch test
 
 ### Removed
+
+- Removed `sqlite` fix as it doesn't seem needed anymore for `ipython`
 
 ### Deprecated
 
