@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rename `always_circular_stereo.py` to `cartopy_example.py`
 - Enable TensorFlow installation for Python 3.13
   - This is now possible as TensorFlow has been updated to support Python 3.13
+- Moved `rasterio` to be a Conda package instead of Pip
+  - This is because `contextily` (a Conda package) depends on `rasterio` and it is better to have both installed via the same package manager
 
 ### Added
 

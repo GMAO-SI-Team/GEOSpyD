@@ -603,7 +603,7 @@ $PACKAGE_INSTALL earthaccess
 
 $PACKAGE_INSTALL uxarray
 
-$PACKAGE_INSTALL contextily
+$PACKAGE_INSTALL rasterio contextily
 
 # Only install pythran on linux. On mac it brings in an old clang
 if [[ $MINIFORGE_ARCH == Linux ]]
@@ -647,7 +647,7 @@ $PACKAGE_INSTALL -c conda-forge/label/renamed nc_time_axis
 PIP_INSTALL="$MINIFORGE_ENVDIR/bin/$PYTHON_EXEC -m pip install"
 PIP_UNINSTALL="$MINIFORGE_ENVDIR/bin/$PYTHON_EXEC -m pip uninstall -y"
 
-$PIP_INSTALL PyRTF3 pipenv pymp-pypi rasterio h5py
+$PIP_INSTALL PyRTF3 pipenv pymp-pypi h5py
 $PIP_INSTALL pycircleci metpy siphon questionary xgrads
 $PIP_INSTALL ruamel.yaml
 $PIP_INSTALL xgboost
