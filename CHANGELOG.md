@@ -11,6 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+### Added
+
+### Removed
+
+### Deprecated
+
+## [25.3.1] - 2025-10-02
+
+### Changed
+
 - Update example Miniforge version to 25.3.1-0
 - Update example Python version to 3.13
 - Re-enable `basemap` installation by default
@@ -34,8 +44,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - Removed `sqlite` fix as it doesn't seem needed anymore for `ipython`
-
-### Deprecated
 
 ## [24.11.3] - 2025-03-03
 
