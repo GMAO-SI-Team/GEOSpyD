@@ -73,7 +73,7 @@ fi
 # -----
 
 EXAMPLE_PY_VERSION="3.13"
-EXAMPLE_MINI_VERSION="25.3.0-3"
+EXAMPLE_MINI_VERSION="25.3.1-0"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
@@ -603,9 +603,7 @@ $PACKAGE_INSTALL earthaccess
 
 $PACKAGE_INSTALL uxarray
 
-# We seem to need to require sqlite 3.48.0 *exactly* for ipython3
-# NOTE: This might need to be revisited in the next version
-$PACKAGE_INSTALL sqlite"==3.48.0"
+$PACKAGE_INSTALL rasterio contextily
 
 # Only install pythran on linux. On mac it brings in an old clang
 if [[ $MINIFORGE_ARCH == Linux ]]
@@ -649,16 +647,11 @@ $PACKAGE_INSTALL -c conda-forge/label/renamed nc_time_axis
 PIP_INSTALL="$MINIFORGE_ENVDIR/bin/$PYTHON_EXEC -m pip install"
 PIP_UNINSTALL="$MINIFORGE_ENVDIR/bin/$PYTHON_EXEC -m pip uninstall -y"
 
-$PIP_INSTALL PyRTF3 pipenv pymp-pypi rasterio h5py
+$PIP_INSTALL PyRTF3 pipenv pymp-pypi h5py
 $PIP_INSTALL pycircleci metpy siphon questionary xgrads
 $PIP_INSTALL ruamel.yaml
 $PIP_INSTALL xgboost
-# At the moment tensorflow does not support Python 3.13
-# See https://github.com/tensorflow/tensorflow/issues/78774
-if [[ $PYTHON_VER_WITHOUT_DOT -lt 313 ]]
-then
-   $PIP_INSTALL tensorflow evidential-deep-learning silence_tensorflow
-fi
+$PIP_INSTALL tensorflow evidential-deep-learning silence_tensorflow
 $PIP_INSTALL torch
 $PIP_INSTALL yaplon
 $PIP_INSTALL lxml
@@ -671,6 +664,7 @@ $PIP_INSTALL Flask
 $PIP_INSTALL goes2go
 $PIP_INSTALL nco
 $PIP_INSTALL cdo
+$PIP_INSTALL ecmwf-opendata
 
 # some packages require a Fortran compiler. This sometimes isn't available
 # on macs (though usually is)

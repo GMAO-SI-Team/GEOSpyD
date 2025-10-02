@@ -11,19 +11,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Update example Miniforge version to 25.3.0-3
+- Update example Miniforge version to 25.3.1-0
 - Update example Python version to 3.13
 - Re-enable `basemap` installation by default
   - This is now possible as `basemap` has been updated to support `numpy` v2
 - Rename `always_circular_stereo.py` to `cartopy_example.py`
+- Enable TensorFlow installation for Python 3.13
+  - This is now possible as TensorFlow has been updated to support Python 3.13
+- Moved `rasterio` to be a Conda package instead of Pip
+  - This is because `contextily` (a Conda package) depends on `rasterio` and it is better to have both installed via the same package manager
 
 ### Added
 
+- Explicit Conda Packages
+  - contextily
 - Explicit Pip Packages
   - nco
   - cdo
+  - ecmwf-opendata
+- Add new pytorch test
 
 ### Removed
+
+- Removed `sqlite` fix as it doesn't seem needed anymore for `ipython`
 
 ### Deprecated
 
