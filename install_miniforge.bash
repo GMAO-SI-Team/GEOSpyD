@@ -73,7 +73,7 @@ fi
 # -----
 
 EXAMPLE_PY_VERSION="3.13"
-EXAMPLE_MINI_VERSION="25.3.1-0"
+EXAMPLE_MINI_VERSION="25.11.0-0"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
@@ -665,6 +665,7 @@ $PIP_INSTALL goes2go
 $PIP_INSTALL nco
 $PIP_INSTALL cdo
 $PIP_INSTALL ecmwf-opendata
+$PIP_INSTALL python-docx
 
 # some packages require a Fortran compiler. This sometimes isn't available
 # on macs (though usually is)

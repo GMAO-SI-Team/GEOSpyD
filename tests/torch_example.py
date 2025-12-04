@@ -5,8 +5,17 @@ import math
 
 
 dtype = torch.float
-device = torch.device("cpu")
-# device = torch.device("cuda:0") # Uncomment this to run on GPU
+if torch.cuda.is_available():
+    device = torch.device("cuda:0")
+    print(f"Using GPU: {torch.cuda.get_device_name(0)}")
+    print(f"GPU memory allocated: {torch.cuda.memory_allocated(0) / 1024**2:.2f} MB")
+    print(f"GPU memory cached: {torch.cuda.memory_reserved(0) / 1024**2:.2f} MB")
+    print(f"CUDA device count: {torch.cuda.device_count()}")
+    print(f"Current CUDA device: {torch.cuda.current_device()}")
+    print(f"CUDA device name: {torch.cuda.get_device_name(0)}")
+else:
+    device = torch.device("cpu")
+    print("CUDA not available, using CPU")
 
 # Create random input and output data
 x = torch.linspace(-math.pi, math.pi, 2000, device=device, dtype=dtype)
