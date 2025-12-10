@@ -12,13 +12,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Update example Miniforge version to 25.11.0-1
+- Disable TensorFlow installation for Python 3.14 (see https://github.com/tensorflow/tensorflow/issues/102890)
 
 ### Added
 
+- Explicit Conda Packages
+  - basemap (latest version for Python 3.14 support only on conda-forge)
 - Explicit Pip Packages
   - python-docx
 
 ### Removed
+
+- Explicit Pip Packages
+  - basemap (latest version for Python 3.14 support only on conda-forge)
 
 ### Deprecated
 

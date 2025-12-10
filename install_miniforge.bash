@@ -605,6 +605,8 @@ $PACKAGE_INSTALL uxarray
 
 $PACKAGE_INSTALL rasterio contextily
 
+$PACKAGE_INSTALL basemap
+
 # Only install pythran on linux. On mac it brings in an old clang
 if [[ $MINIFORGE_ARCH == Linux ]]
 then
@@ -651,14 +653,21 @@ $PIP_INSTALL PyRTF3 pipenv pymp-pypi h5py
 $PIP_INSTALL pycircleci metpy siphon questionary xgrads
 $PIP_INSTALL ruamel.yaml
 $PIP_INSTALL xgboost
-$PIP_INSTALL tensorflow evidential-deep-learning silence_tensorflow
+
+# Tensorflow does not support Python 3.14 yet
+# https://github.com/tensorflow/tensorflow/issues/102890
+if [[ $PYTHON_VER_WITHOUT_DOT -ge 314 ]]
+then
+   echo "Skipping tensorflow installation as Python $PYTHON_VER is 3.14 or higher"
+else
+   $PIP_INSTALL tensorflow evidential-deep-learning silence_tensorflow
+fi
 $PIP_INSTALL torch
 $PIP_INSTALL yaplon
 $PIP_INSTALL lxml
 $PIP_INSTALL juliandate
 $PIP_INSTALL pybufrkit
 $PIP_INSTALL pyephem
-$PIP_INSTALL basemap
 $PIP_INSTALL redis
 $PIP_INSTALL Flask
 $PIP_INSTALL goes2go
