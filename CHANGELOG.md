@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Update example Python version to 3.14
 - Update example Miniforge version to 25.11.0-1
 - Disable TensorFlow installation for Python 3.14 (see https://github.com/tensorflow/tensorflow/issues/102890)
 
