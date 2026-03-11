@@ -9,10 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix `ffnet` installation for Python 3.13+ and modern pip (26.x):
+  - Remove `--no-use-pep517` flag, which was dropped in pip 23.1
+  - Add `--no-build-isolation` for Python 3.13+ so that `numpy` (required at
+    Fortran compile time) is visible to pip's build backend instead of being
+    hidden inside an isolated sandbox
+  - Simplify misleading echo message in the ffnet install block
+- Remove `--show-channel-urls` flag from `mamba list` calls; the flag is not
+  supported by mamba 2.x and caused the end-of-install package listing to be
+  skipped with a spurious warning
+
 ### Changed
 
 - Update example Python version to 3.14
-- Update example Miniforge version to 25.11.0-1
+- Update example Miniforge version to 26.1.0-0
 - Disable TensorFlow installation for Python 3.14 (see https://github.com/tensorflow/tensorflow/issues/102890)
 
 ### Added

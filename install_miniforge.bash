@@ -73,7 +73,7 @@ fi
 # -----
 
 EXAMPLE_PY_VERSION="3.14"
-EXAMPLE_MINI_VERSION="25.11.0-1"
+EXAMPLE_MINI_VERSION="26.1.0-0"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
@@ -680,7 +680,7 @@ $PIP_INSTALL python-docx
 # on macs (though usually is)
 if [[ $FORTRAN_AVAILABLE == TRUE ]]
 then
-   echo "We have a Fortran compiler and are Python 3.12 or older. Installing ffnet"
+   echo "We have a Fortran compiler. Installing ffnet"
    # we need to install ffnet from https://github.com/mrkwjc/ffnet.git
    # This is because the version in PyPI is not compatible with Python 3
    # and latest scipy
@@ -692,8 +692,14 @@ then
    if [[ $PYTHON_VER_WITHOUT_DOT -ge 313 ]]
    then
       $PIP_INSTALL setuptools wheel
-      # We also need a new flag for Python 3.13
-      EXTRA_PIP_FLAGS='--no-use-pep517'
+   fi
+   # For Python 3.13+, pip's isolated build environment does not inherit the
+   # conda env packages (e.g. numpy), which ffnet needs at build time. Passing
+   # --no-build-isolation tells pip to use the already-installed packages from
+   # the conda env instead of creating a fresh isolated sandbox.
+   if [[ $PYTHON_VER_WITHOUT_DOT -ge 313 ]]
+   then
+      EXTRA_PIP_FLAGS='--no-build-isolation'
    else
       EXTRA_PIP_FLAGS=''
    fi
@@ -765,8 +771,8 @@ $PIP_INSTALL prompt_toolkit
 # Use mamba to output list of packages installed
 # ----------------------------------------------
 cd $MINIFORGE_ENVDIR
-$MINIFORGE_BINDIR/mamba list -n $MINIFORGE_ENVNAME --show-channel-urls --explicit > distribution_spec_file.txt
-$MINIFORGE_BINDIR/mamba list -n $MINIFORGE_ENVNAME --show-channel-urls > mamba_list_packages.txt
+$MINIFORGE_BINDIR/mamba list -n $MINIFORGE_ENVNAME --explicit > distribution_spec_file.txt
+$MINIFORGE_BINDIR/mamba list -n $MINIFORGE_ENVNAME > mamba_list_packages.txt
 ./bin/pip freeze > pip_freeze_packages.txt
 
 # Restore User's .mambarc and .condarc using cleanup function
