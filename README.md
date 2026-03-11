@@ -14,12 +14,12 @@ to prevent infection from the Anaconda `defaults` channel, the script at the end
 In order to use the install script, you can run:
 
 ```
-./install_miniforge.bash --python_version 3.12 --miniforge_version 24.5.0-0 --prefix /opt/GEOSpyD
+./install_miniforge.bash --python_version 3.14 --miniforge_version 26.1.0-0 --prefix /opt/GEOSpyD
 ```
 
 will create an install at:
 ```
-/opt/GEOSpyD/24.5.0-0_py3.12/YYYY-MM-DD
+/opt/GEOSpyD/26.1.0-0/YYYY-MM-DD
 ```
 
 where YYYY-MM-DD is the date of the install. We use a date so that if
@@ -28,17 +28,19 @@ the stack is re-installed, the previous install is not overwritten.
 ## Usage
 
 ```
-Usage: ./install_miniforge.bash --python_version <python version> --miniforge_version <miniforge> --prefix <prefix> [--micromamba | --mamba] [--blas <blas>]
+Usage: ./install_miniforge.bash --python_version <python version> --miniforge_version <miniforge> --prefix <prefix>
+                   [--micromamba | --mamba] [--blas <blas>] [--ffnet-hack]
 
    Required arguments:
-      --python_version <python version> (e.g., 3.12)
-      --miniforge_version <miniforge_version version> (e.g., 24.5.0-0)
+      --python_version <python version> (e.g., 3.14)
+      --miniforge_version <miniforge_version version> (e.g., 26.1.0-0)
       --prefix <full path to installation directory> (e.g, /opt/GEOSpyD)
 
    Optional arguments:
       --blas <blas> (default: accelerate, options: mkl, openblas, accelerate, blis)
       --micromamba: Use micromamba installer (default)
       --mamba: Use mamba installer
+      --ffnet-hack: Install ffnet from fork (used on Bucy due to odd issue not finding gfortran)
       --help: Print this message
 
    By default we use the micromamba installer on both Linux and macOS
@@ -47,13 +49,12 @@ Usage: ./install_miniforge.bash --python_version <python version> --miniforge_ve
    NOTE 1: This script installs within /opt/GEOSpyD with a path based on:
 
         1. The Miniforge version
-        2. The Python version
-        3. The date of the installation
+        2. The date of the installation
 
-   For example: ./install_miniforge.bash --python_version 3.12 --miniforge_version 24.5.0-0 --prefix /opt/GEOSpyD
+   For example: ./install_miniforge.bash --python_version 3.14 --miniforge_version 26.1.0-0 --prefix /opt/GEOSpyD
 
    will create an install at:
-       /opt/GEOSpyD/24.5.0-0_py3.12/2024-08-29
+       /opt/GEOSpyD/26.1.0-0/2026-03-11
 
   NOTE 2: This script will create or substitute a .mambarc
   and .condarc file in the user's home directory.  If you
@@ -61,3 +62,4 @@ Usage: ./install_miniforge.bash --python_version <python version> --miniforge_ve
   restored after installation.  We do this to ensure that the
   installation uses conda-forge as the default channel.
 ```
+
