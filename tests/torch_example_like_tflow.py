@@ -7,31 +7,8 @@ from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 import time
 
-print("PyTorch version:", torch.__version__)
-print("CUDA available:", torch.cuda.is_available())
-if hasattr(torch.backends, "mps"):
-    print("MPS available:", torch.backends.mps.is_available())
 
-# Load MNIST dataset
-transform = transforms.Compose(
-    [
-        transforms.ToTensor(),  # This automatically normalizes to [0, 1]
-    ]
-)
-
-print("\nDownloading/Loading MNIST dataset...")
-train_dataset = datasets.MNIST(
-    root="./data", train=True, download=True, transform=transform
-)
-test_dataset = datasets.MNIST(
-    root="./data", train=False, download=True, transform=transform
-)
-
-train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
-
-
-def run_mnist(device_name):
+def run_mnist(device_name, train_loader, test_loader):
     device = torch.device(device_name)
     print(f"\n========== Running on {device} ==========")
 
@@ -58,7 +35,7 @@ def run_mnist(device_name):
         correct = 0
         total = 0
 
-        for batch_idx, (data, target) in enumerate(train_loader):
+        for data, target in train_loader:
             data, target = data.to(device), target.to(device)
 
             # Zero the gradients
@@ -74,7 +51,7 @@ def run_mnist(device_name):
 
             # Statistics
             running_loss += loss.item()
-            _, predicted = torch.max(output.data, 1)
+            predicted = output.argmax(dim=1)
             total += target.size(0)
             correct += (predicted == target).sum().item()
 
@@ -97,7 +74,7 @@ def run_mnist(device_name):
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
             output = model(data)
-            _, predicted = torch.max(output.data, 1)
+            predicted = output.argmax(dim=1)
             total += target.size(0)
             correct += (predicted == target).sum().item()
 
@@ -117,13 +94,41 @@ def run_mnist(device_name):
         print(probabilities)
 
 
-# Run CPU
-run_mnist("cpu")
+def main():
+    print("PyTorch version:", torch.__version__)
+    print("CUDA available:", torch.cuda.is_available())
+    if hasattr(torch.backends, "mps"):
+        print("MPS available:", torch.backends.mps.is_available())
 
-# Determine and run accelerated device
-if torch.cuda.is_available():
-    run_mnist("cuda:0")
-elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
-    run_mnist("mps")
-else:
-    print("\nNo accelerated device (CUDA/MPS) found. Skipping accelerated run.")
+    # Load MNIST dataset
+    transform = transforms.Compose(
+        [
+            transforms.ToTensor(),  # This automatically normalizes to [0, 1]
+        ]
+    )
+
+    print("\nDownloading/Loading MNIST dataset...")
+    train_dataset = datasets.MNIST(
+        root="./data", train=True, download=True, transform=transform
+    )
+    test_dataset = datasets.MNIST(
+        root="./data", train=False, download=True, transform=transform
+    )
+
+    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+
+    # Run CPU
+    run_mnist("cpu", train_loader, test_loader)
+
+    # Determine and run accelerated device
+    if torch.cuda.is_available():
+        run_mnist("cuda:0", train_loader, test_loader)
+    elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+        run_mnist("mps", train_loader, test_loader)
+    else:
+        print("\nNo accelerated device (CUDA/MPS) found. Skipping accelerated run.")
+
+
+if __name__ == "__main__":
+    main()

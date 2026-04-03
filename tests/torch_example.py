@@ -23,7 +23,7 @@ def run_polynomial_regression(device_name):
     learning_rate = 1e-6
 
     start_time = time.time()
-    for t in range(2000):
+    for _t in range(2000):
         # Forward pass: compute predicted y
         y_pred = a + b * x + c * x**2 + d * x**3
 
@@ -52,17 +52,22 @@ def run_polynomial_regression(device_name):
     )
 
 
-print(f"PyTorch version: {torch.__version__}")
+def main():
+    print(f"PyTorch version: {torch.__version__}")
 
-# Always run CPU first
-run_polynomial_regression("cpu")
+    # Always run CPU first
+    run_polynomial_regression("cpu")
 
-# Determine and run accelerated device
-if torch.cuda.is_available():
-    print(f"\nFound CUDA: {torch.cuda.get_device_name(0)}")
-    run_polynomial_regression("cuda:0")
-elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
-    print("\nFound Apple Metal Performance Shaders (MPS)")
-    run_polynomial_regression("mps")
-else:
-    print("\nNo accelerated device (CUDA/MPS) found. Skipping accelerated run.")
+    # Determine and run accelerated device
+    if torch.cuda.is_available():
+        print(f"\nFound CUDA: {torch.cuda.get_device_name(0)}")
+        run_polynomial_regression("cuda:0")
+    elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+        print("\nFound Apple Metal Performance Shaders (MPS)")
+        run_polynomial_regression("mps")
+    else:
+        print("\nNo accelerated device (CUDA/MPS) found. Skipping accelerated run.")
+
+
+if __name__ == "__main__":
+    main()

@@ -680,7 +680,7 @@ $PIP_INSTALL python-docx
 # on macs (though usually is)
 if [[ $FORTRAN_AVAILABLE == TRUE ]]
 then
-   echo "We have a Fortran compiler. Installing ffnet"
+   echo "We have a Fortran compiler. Installing ffnet (Python $PYTHON_VER)"
    # we need to install ffnet from https://github.com/mrkwjc/ffnet.git
    # This is because the version in PyPI is not compatible with Python 3
    # and latest scipy

@@ -18,7 +18,7 @@ In order to use the install script, you can run:
 ```
 
 will create an install at:
-```
+```text
 /opt/GEOSpyD/26.1.1-3/YYYY-MM-DD
 ```
 
