@@ -11,3 +11,5 @@ Miniconda2/
 xor*
 tmp-for-ffnet/
 *.png
+
+data/

@@ -73,7 +73,7 @@ fi
 # -----
 
 EXAMPLE_PY_VERSION="3.14"
-EXAMPLE_MINI_VERSION="26.1.0-0"
+EXAMPLE_MINI_VERSION="26.1.1-3"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
@@ -662,7 +662,7 @@ then
 else
    $PIP_INSTALL tensorflow evidential-deep-learning silence_tensorflow
 fi
-$PIP_INSTALL torch
+$PIP_INSTALL torch torchvision
 $PIP_INSTALL yaplon
 $PIP_INSTALL lxml
 $PIP_INSTALL juliandate

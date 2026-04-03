@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+## [26.1.1-3] - 2026-04-03
+
 ### Fixed
 
 - Fix `ffnet` installation for Python 3.13+ and modern pip (26.x):
@@ -21,12 +33,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Update PyTorch examples to support Apple Metal Performance Shaders (MPS)
 - Update example Python version to 3.14
-- Update example Miniforge version to 26.1.0-0
+- Update example Miniforge version to 26.1.1-3
 - Disable TensorFlow installation for Python 3.14 (see https://github.com/tensorflow/tensorflow/issues/102890)
 
 ### Added
 
+- Add `torchvision` to the `pip install` list in `install_miniforge.bash`
+- Add CPU vs. Accelerated (CUDA/MPS) comparisons to PyTorch tests (`tests/torch_example.py` and `tests/torch_example_like_tflow.py`)
 - Explicit Conda Packages
   - basemap (latest version for Python 3.14 support only on conda-forge)
 - Explicit Pip Packages
@@ -36,8 +51,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Explicit Pip Packages
   - basemap (latest version for Python 3.14 support only on conda-forge)
-
-### Deprecated
 
 ## [25.3.1] - 2025-10-02
 
