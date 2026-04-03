@@ -771,8 +771,8 @@ $PIP_INSTALL prompt_toolkit
 # Use mamba to output list of packages installed
 # ----------------------------------------------
 cd $MINIFORGE_ENVDIR
-$MINIFORGE_BINDIR/mamba list -n $MINIFORGE_ENVNAME --explicit > distribution_spec_file.txt
-$MINIFORGE_BINDIR/mamba list -n $MINIFORGE_ENVNAME > mamba_list_packages.txt
+"$MINIFORGE_BINDIR"/mamba list -n "$MINIFORGE_ENVNAME" --explicit > distribution_spec_file.txt
+"$MINIFORGE_BINDIR"/mamba list -n "$MINIFORGE_ENVNAME" > mamba_list_packages.txt
 ./bin/pip freeze > pip_freeze_packages.txt
 
 # Restore User's .mambarc and .condarc using cleanup function
