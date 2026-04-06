@@ -7,15 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
+### Added
 
 ### Changed
 
-### Added
+### Deprecated
 
 ### Removed
 
-### Deprecated
+### Fixed
+
+## [26.1.1-3] - 2026-04-03
+
+### Fixed
+
+- Fix `ffnet` installation for Python 3.13+ and modern pip (26.x):
+  - Remove `--no-use-pep517` flag, which was dropped in pip 23.1
+  - Add `--no-build-isolation` for Python 3.13+ so that `numpy` (required at
+    Fortran compile time) is visible to pip's build backend instead of being
+    hidden inside an isolated sandbox
+  - Simplify misleading echo message in the ffnet install block
+- Remove `--show-channel-urls` flag from `mamba list` calls; the flag is not
+  supported by mamba 2.x and caused the end-of-install package listing to be
+  skipped with a spurious warning
+
+### Changed
+
+- Update PyTorch examples to support Apple Metal Performance Shaders (MPS)
+- Update example Python version to 3.14
+- Update example Miniforge version to 26.1.1-3
+- Disable TensorFlow installation for Python 3.14 (see https://github.com/tensorflow/tensorflow/issues/102890)
+
+### Added
+
+- Add `torchvision` to the `pip install` list in `install_miniforge.bash`
+- Add CPU vs. Accelerated (CUDA/MPS) comparisons to PyTorch tests (`tests/torch_example.py` and `tests/torch_example_like_tflow.py`)
+- Explicit Conda Packages
+  - basemap (latest version for Python 3.14 support only on conda-forge)
+- Explicit Pip Packages
+  - python-docx
+
+### Removed
+
+- Explicit Pip Packages
+  - basemap (latest version for Python 3.14 support only on conda-forge)
 
 ## [25.3.1] - 2025-10-02
 

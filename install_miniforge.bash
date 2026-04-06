@@ -72,8 +72,8 @@ fi
 # Usage
 # -----
 
-EXAMPLE_PY_VERSION="3.13"
-EXAMPLE_MINI_VERSION="25.3.1-0"
+EXAMPLE_PY_VERSION="3.14"
+EXAMPLE_MINI_VERSION="26.1.1-3"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
@@ -605,6 +605,8 @@ $PACKAGE_INSTALL uxarray
 
 $PACKAGE_INSTALL rasterio contextily
 
+$PACKAGE_INSTALL basemap
+
 # Only install pythran on linux. On mac it brings in an old clang
 if [[ $MINIFORGE_ARCH == Linux ]]
 then
@@ -651,26 +653,34 @@ $PIP_INSTALL PyRTF3 pipenv pymp-pypi h5py
 $PIP_INSTALL pycircleci metpy siphon questionary xgrads
 $PIP_INSTALL ruamel.yaml
 $PIP_INSTALL xgboost
-$PIP_INSTALL tensorflow evidential-deep-learning silence_tensorflow
-$PIP_INSTALL torch
+
+# Tensorflow does not support Python 3.14 yet
+# https://github.com/tensorflow/tensorflow/issues/102890
+if [[ $PYTHON_VER_WITHOUT_DOT -ge 314 ]]
+then
+   echo "Skipping tensorflow installation as Python $PYTHON_VER is 3.14 or higher"
+else
+   $PIP_INSTALL tensorflow evidential-deep-learning silence_tensorflow
+fi
+$PIP_INSTALL torch torchvision
 $PIP_INSTALL yaplon
 $PIP_INSTALL lxml
 $PIP_INSTALL juliandate
 $PIP_INSTALL pybufrkit
 $PIP_INSTALL pyephem
-$PIP_INSTALL basemap
 $PIP_INSTALL redis
 $PIP_INSTALL Flask
 $PIP_INSTALL goes2go
 $PIP_INSTALL nco
 $PIP_INSTALL cdo
 $PIP_INSTALL ecmwf-opendata
+$PIP_INSTALL python-docx
 
 # some packages require a Fortran compiler. This sometimes isn't available
 # on macs (though usually is)
 if [[ $FORTRAN_AVAILABLE == TRUE ]]
 then
-   echo "We have a Fortran compiler and are Python 3.12 or older. Installing ffnet"
+   echo "We have a Fortran compiler. Installing ffnet (Python $PYTHON_VER)"
    # we need to install ffnet from https://github.com/mrkwjc/ffnet.git
    # This is because the version in PyPI is not compatible with Python 3
    # and latest scipy
@@ -682,8 +692,14 @@ then
    if [[ $PYTHON_VER_WITHOUT_DOT -ge 313 ]]
    then
       $PIP_INSTALL setuptools wheel
-      # We also need a new flag for Python 3.13
-      EXTRA_PIP_FLAGS='--no-use-pep517'
+   fi
+   # For Python 3.13+, pip's isolated build environment does not inherit the
+   # conda env packages (e.g. numpy), which ffnet needs at build time. Passing
+   # --no-build-isolation tells pip to use the already-installed packages from
+   # the conda env instead of creating a fresh isolated sandbox.
+   if [[ $PYTHON_VER_WITHOUT_DOT -ge 313 ]]
+   then
+      EXTRA_PIP_FLAGS='--no-build-isolation'
    else
       EXTRA_PIP_FLAGS=''
    fi
@@ -755,8 +771,8 @@ $PIP_INSTALL prompt_toolkit
 # Use mamba to output list of packages installed
 # ----------------------------------------------
 cd $MINIFORGE_ENVDIR
-$MINIFORGE_BINDIR/mamba list -n $MINIFORGE_ENVNAME --show-channel-urls --explicit > distribution_spec_file.txt
-$MINIFORGE_BINDIR/mamba list -n $MINIFORGE_ENVNAME --show-channel-urls > mamba_list_packages.txt
+"$MINIFORGE_BINDIR"/mamba list -n "$MINIFORGE_ENVNAME" --explicit > distribution_spec_file.txt
+"$MINIFORGE_BINDIR"/mamba list -n "$MINIFORGE_ENVNAME" > mamba_list_packages.txt
 ./bin/pip freeze > pip_freeze_packages.txt
 
 # Restore User's .mambarc and .condarc using cleanup function
