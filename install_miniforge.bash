@@ -551,7 +551,7 @@ $PACKAGE_INSTALL virtualenv configargparse
 $PACKAGE_INSTALL psycopg2 gdal xarray geotiff plotly
 $PACKAGE_INSTALL iris pyhdf biggus hpccm cdsapi
 $PACKAGE_INSTALL babel beautifulsoup4 colorama gmp jupyter jupyterlab
-$PACKAGE_INSTALL movingpandas geoviews hvplot">=0.11.0" geopandas bokeh
+$PACKAGE_INSTALL movingpandas geoviews hvplot">=0.11.0" geopandas bokeh jupyter_bokeh
 $PACKAGE_INSTALL skimpy
 $PACKAGE_INSTALL intake intake-parquet intake-xarray
 
@@ -606,6 +606,8 @@ $PACKAGE_INSTALL uxarray
 $PACKAGE_INSTALL rasterio contextily
 
 $PACKAGE_INSTALL basemap
+
+$PACKAGE_INSTALL libmagic python-magic
 
 # Only install pythran on linux. On mac it brings in an old clang
 if [[ $MINIFORGE_ARCH == Linux ]]
@@ -675,6 +677,7 @@ $PIP_INSTALL nco
 $PIP_INSTALL cdo
 $PIP_INSTALL ecmwf-opendata
 $PIP_INSTALL python-docx
+$PIP_INSTALL openpyxl
 
 # some packages require a Fortran compiler. This sometimes isn't available
 # on macs (though usually is)
