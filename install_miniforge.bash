@@ -607,6 +607,8 @@ $PACKAGE_INSTALL rasterio contextily
 
 $PACKAGE_INSTALL basemap
 
+$PACKAGE_INSTALL libmagic python-magic
+
 # Only install pythran on linux. On mac it brings in an old clang
 if [[ $MINIFORGE_ARCH == Linux ]]
 then
@@ -676,7 +678,6 @@ $PIP_INSTALL cdo
 $PIP_INSTALL ecmwf-opendata
 $PIP_INSTALL python-docx
 $PIP_INSTALL openpyxl
-$PIP_INSTALL python-magic
 
 # some packages require a Fortran compiler. This sometimes isn't available
 # on macs (though usually is)

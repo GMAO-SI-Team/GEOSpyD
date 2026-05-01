@@ -45,10 +45,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Explicit Conda Packages
   - basemap (latest version for Python 3.14 support only on conda-forge)
   - jupyter_bokeh
+  - libmagic & python-magic
 - Explicit Pip Packages
   - python-docx
   - openpyxl
-  - python-magic
 
 ### Removed
 
