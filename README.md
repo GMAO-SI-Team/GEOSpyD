@@ -14,12 +14,12 @@ to prevent infection from the Anaconda `defaults` channel, the script at the end
 In order to use the install script, you can run:
 
 ```
-./install_miniforge.bash --python_version 3.14 --miniforge_version 26.1.1-3 --prefix /opt/GEOSpyD
+./install_miniforge.bash --python_version 3.14 --miniforge_version 26.3.2-0 --prefix /opt/GEOSpyD
 ```
 
 will create an install at:
 ```text
-/opt/GEOSpyD/26.1.1-3/YYYY-MM-DD
+/opt/GEOSpyD/26.3.2-0/YYYY-MM-DD
 ```
 
 where YYYY-MM-DD is the date of the install. We use a date so that if
@@ -33,7 +33,7 @@ Usage: ./install_miniforge.bash --python_version <python version> --miniforge_ve
 
    Required arguments:
       --python_version <python version> (e.g., 3.14)
-      --miniforge_version <miniforge_version version> (e.g., 26.1.1-3)
+      --miniforge_version <miniforge_version version> (e.g., 26.3.2-0)
       --prefix <full path to installation directory> (e.g, /opt/GEOSpyD)
 
    Optional arguments:
@@ -51,10 +51,10 @@ Usage: ./install_miniforge.bash --python_version <python version> --miniforge_ve
         1. The Miniforge version
         2. The date of the installation
 
-   For example: ./install_miniforge.bash --python_version 3.14 --miniforge_version 26.1.1-3 --prefix /opt/GEOSpyD
+   For example: ./install_miniforge.bash --python_version 3.14 --miniforge_version 26.3.2-0 --prefix /opt/GEOSpyD
 
    will create an install at:
-       /opt/GEOSpyD/26.1.1-3/2026-03-11
+       /opt/GEOSpyD/26.3.2-0/2026-03-11
 
   NOTE 2: This script will create or substitute a .mambarc
   and .condarc file in the user's home directory.  If you

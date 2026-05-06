@@ -17,6 +17,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [26.3.2-0] - 2026-05-06
+
+### Changed
+
+- Update example Miniforge version to 26.3.2-0
+
+### Added
+
+- Explicit Pip Packages
+  - adjustText
+
 ## [26.1.1-3] - 2026-05-01
 
 ### Fixed
