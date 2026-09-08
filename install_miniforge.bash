@@ -73,7 +73,7 @@ fi
 # -----
 
 EXAMPLE_PY_VERSION="3.14"
-EXAMPLE_MINI_VERSION="26.3.2-0"
+EXAMPLE_MINI_VERSION="26.5.3-0"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
@@ -419,7 +419,6 @@ channels:
   - conda-forge
   - nodefaults
 channel_priority: strict
-show_channel_urls: True
 use_lockfiles: False
 EOF
 
@@ -429,7 +428,6 @@ channels:
   - conda-forge
   - nodefaults
 channel_priority: strict
-show_channel_urls: True
 use_lockfiles: False
 EOF
 
@@ -608,6 +606,8 @@ $PACKAGE_INSTALL rasterio contextily
 $PACKAGE_INSTALL basemap
 
 $PACKAGE_INSTALL libmagic python-magic
+
+$PACKAGE_INSTALL pyspharm windspharm
 
 # Only install pythran on linux. On mac it brings in an old clang
 if [[ $MINIFORGE_ARCH == Linux ]]
