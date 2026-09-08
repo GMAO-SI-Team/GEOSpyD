@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [26.5.3-0] - 2026-09-08
 
+### Changed
+
 - Update example Miniforge version to 26.5.3-0
 
 ### Added
