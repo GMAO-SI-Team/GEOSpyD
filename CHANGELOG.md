@@ -17,6 +17,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [26.5.3-0] - 2026-09-08
+
+- Update example Miniforge version to 26.5.3-0
+
+### Added
+
+- Explicit Conda Packages
+  - pyspharm
+  - windspharm
+
 ## [26.3.2-0] - 2026-05-06
 
 ### Changed
