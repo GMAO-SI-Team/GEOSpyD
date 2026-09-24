@@ -1,47 +1,44 @@
 #!/bin/bash
 
 set -Eeuo pipefail
-trap cleanup SIGINT SIGTERM ERR EXIT
 
-# Save user's .mambarc and .condarc for safety using mktemp
-# ---------------------------------------------------------
-
-ORIG_MAMBARC=$(mktemp)
-MAMBARC_FOUND=FALSE
-if [[ -f ~/.mambarc ]]
-then
-   MAMBARC_FOUND=TRUE
-   echo "Found existing .mambarc. Saving to $ORIG_MAMBARC"
-   cp -v ~/.mambarc "$ORIG_MAMBARC"
-fi
-
-ORIG_CONDARC=$(mktemp)
-CONDARC_FOUND=FALSE
-if [[ -f ~/.condarc ]]
-then
-   CONDARC_FOUND=TRUE
-   echo "Found existing .condarc. Saving to $ORIG_CONDARC"
-   cp -v ~/.condarc "$ORIG_CONDARC"
-fi
-
-# The cleanup function will restore the user's .mambarc and .condarc
-# ------------------------------------------------------------------
+# Restore the user's configuration even when installation fails.
 cleanup() {
-   trap - SIGINT SIGTERM ERR EXIT
    local ret=$?
-   echo "Cleaning up..."
+   trap - EXIT INT TERM
    if [[ $MAMBARC_FOUND == TRUE ]]
    then
-      echo "Restoring original .mambarc"
-      cp -v "$ORIG_MAMBARC" ~/.mambarc
+      cp -v "$ORIG_MAMBARC" ~/.mambarc || ret=1
+   elif [[ $CONFIG_WRITTEN == TRUE ]]
+   then
+      rm -f ~/.mambarc || ret=1
    fi
    if [[ $CONDARC_FOUND == TRUE ]]
    then
-      echo "Restoring original .condarc"
-      cp -v "$ORIG_CONDARC" ~/.condarc
+      cp -v "$ORIG_CONDARC" ~/.condarc || ret=1
+   elif [[ $CONFIG_WRITTEN == TRUE ]]
+   then
+      rm -f ~/.condarc || ret=1
    fi
-   exit $ret
+   if [[ -n $ORIG_MAMBARC ]]
+   then
+      rm -f "$ORIG_MAMBARC" || ret=1
+   fi
+   if [[ -n $ORIG_CONDARC ]]
+   then
+      rm -f "$ORIG_CONDARC" || ret=1
+   fi
+   exit "$ret"
 }
+
+MAMBARC_FOUND=FALSE
+CONDARC_FOUND=FALSE
+CONFIG_WRITTEN=FALSE
+ORIG_MAMBARC=''
+ORIG_CONDARC=''
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 # -----------------
 # Detect usual bits
@@ -49,7 +46,6 @@ cleanup() {
 
 ARCH=$(uname -s)
 MACH=$(uname -m)
-NODE=$(uname -n)
 
 # -----------------------------------
 # Set the Default BLAS implementation
@@ -73,12 +69,12 @@ fi
 # -----
 
 EXAMPLE_PY_VERSION="3.14"
-EXAMPLE_MINI_VERSION="26.5.3-0"
+EXAMPLE_MINI_VERSION="26.7.2-0"
 EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
    echo "Usage: $0 --python_version <python version> --miniforge_version <miniforge> --prefix <prefix>"
-   echo "                   [--micromamba | --mamba] [--blas <blas>] [--ffnet-hack]"
+   echo "                   [--micromamba | --mamba] [--blas <blas>] [--ffnet-hack] [--ignore-ffnet-errors]"
    echo ""
    echo "   Required arguments:"
    echo "      --python_version <python version> (e.g., ${EXAMPLE_PY_VERSION})"
@@ -90,21 +86,22 @@ usage() {
    echo "      --micromamba: Use micromamba installer (default)"
    echo "      --mamba: Use mamba installer"
    echo "      --ffnet-hack: Install ffnet from fork (used on Bucy due to odd issue not finding gfortran)"
+   echo "      --ignore-ffnet-errors: Continue if ffnet fails or gfortran is unavailable/too old on Linux (default: fail installation)"
    echo "      --help: Print this message"
    echo ""
    echo "   By default we use the micromamba installer on both Linux and macOS"
-   echo "   For BLAS, we use accelerate on macOS and MKL on Linux"
+   echo "   For BLAS, we use accelerate on Apple Silicon and MKL elsewhere"
    echo ""
    echo "   NOTE 1: This script installs within ${EXAMPLE_INSTALLDIR} with a path based on:"
    echo ""
    echo "        1. The Miniforge version"
-   echo "        2. The Python version"
-   echo "        3. The date of the installation"
+   echo "        2. The date of the installation"
+   echo "   The Python environment is created under envs/py<python version>."
    echo ""
    echo "   For example: $0 --python_version ${EXAMPLE_PY_VERSION} --miniforge_version ${EXAMPLE_MINI_VERSION} --prefix ${EXAMPLE_INSTALLDIR}"
    echo ""
    echo "   will create an install at:"
-   echo "       ${EXAMPLE_INSTALLDIR}/${EXAMPLE_MINI_VERSION}_py${EXAMPLE_PY_VERSION}/${EXAMPLE_DATE}"
+   echo "       ${EXAMPLE_INSTALLDIR}/${EXAMPLE_MINI_VERSION}/${EXAMPLE_DATE}/envs/py${EXAMPLE_PY_VERSION}"
    echo ""
    echo "  NOTE 2: This script will create or substitute a .mambarc    "
    echo "  and .condarc file in the user's home directory.  If you     "
@@ -112,12 +109,6 @@ usage() {
    echo "  restored after installation.  We do this to ensure that the "
    echo "  installation uses conda-forge as the default channel.       "
 }
-
-if [[ $# -lt 4 ]]
-then
-   usage
-   exit 1
-fi
 
 # From http://stackoverflow.com/a/246128/1876449
 # ----------------------------------------------
@@ -140,16 +131,16 @@ then
    if [[ $(command -v gsed) ]]
    then
       #echo "Found gsed on macOS. Good job! You are smart!"
-      SED="$(command -v gsed) -i "
+      SED_INPLACE=("$(command -v gsed)" -i)
    else
       #echo "It is recommended to use GNU sed since macOS default"
       #echo "sed is a useless BSD variant. Consider installing"
       #echo "GNU sed from a packager like Homebrew:"
       #echo "  brew install gnu-sed"
-      SED="$(command -v sed) -i.macbak "
+      SED_INPLACE=("$(command -v sed)" -i.macbak)
    fi
 else
-   SED="$(command -v sed) -i "
+   SED_INPLACE=("$(command -v sed)" -i)
 fi
 
 # ----------------------
@@ -159,9 +150,23 @@ fi
 USE_MAMBA=FALSE
 USE_MICROMAMBA=TRUE
 FFNET_HACK=FALSE
+IGNORE_FFNET_ERRORS=FALSE
+PYTHON_VER=''
+MINIFORGE_VER=''
+MINIFORGE_DIR=''
 
 while [[ $# -gt 0 ]]
 do
+   case "$1" in
+      --python_version|--miniforge_version|--prefix|--blas)
+         if [[ $# -lt 2 || $2 == --* ]]
+         then
+            echo "ERROR: $1 requires a value"
+            usage
+            exit 1
+         fi
+         ;;
+   esac
    case "$1" in
       --python_version)
          PYTHON_VER=$2
@@ -182,6 +187,9 @@ do
       --ffnet-hack)
          FFNET_HACK=TRUE
          ;;
+      --ignore-ffnet-errors)
+         IGNORE_FFNET_ERRORS=TRUE
+         ;;
       --prefix)
          MINIFORGE_DIR=$2
          shift
@@ -192,7 +200,7 @@ do
          ;;
       --help | -h)
          usage
-         exit 1
+         exit 0
          ;;
       *)
          echo "Option $1 not recognized"
@@ -249,38 +257,46 @@ fi
 # -----------------------------------
 
 FORTRAN_AVAILABLE=FALSE
+GFORTRAN=''
 
 if [[ $ARCH == Darwin ]]
 then
-   if [[ $(command -v gfortran) ]]
+   if command -v gfortran >/dev/null 2>&1
    then
-      echo "Found gfortran on macOS. Will be used for ffnet"
-      FORTRAN_AVAILABLE=TRUE
-   elif [[ $(command -v gfortran-11) ]]
+      GFORTRAN=gfortran
+   elif command -v gfortran-11 >/dev/null 2>&1
    then
-      echo "Found gfortran-11 on macOS. Will be used for ffnet"
-      FORTRAN_AVAILABLE=TRUE
-   elif [[ $(command -v gfortran-12) ]]
+      GFORTRAN=gfortran-11
+   elif command -v gfortran-12 >/dev/null 2>&1
    then
-      echo "Found gfortran-12 on macOS. Will be used for ffnet"
-      FORTRAN_AVAILABLE=TRUE
-   elif [[ $(command -v gfortran-13) ]]
+      GFORTRAN=gfortran-12
+   elif command -v gfortran-13 >/dev/null 2>&1
    then
-      echo "Found gfortran-13 on macOS. Will be used for ffnet"
-      FORTRAN_AVAILABLE=TRUE
+      GFORTRAN=gfortran-13
    else
       echo "WARNING: gfortran is not available. If you wish to install ffnet, please install it or load an appropriate module."
       echo "         For now we will skip the installation of ffnet"
    fi
-else
-   if [[ $(command -v gfortran) ]]
+   if [[ -n $GFORTRAN ]]
    then
+      echo "Found $GFORTRAN on macOS. Will be used for ffnet"
+      FORTRAN_AVAILABLE=TRUE
+   fi
+else
+   if command -v gfortran >/dev/null 2>&1
+   then
+      GFORTRAN=gfortran
       echo "Found gfortran on Linux. Will be used for ffnet"
       FORTRAN_AVAILABLE=TRUE
    else
-      echo "ERROR: gfortran is not available. Please install it or load an appropriate module."
-      echo "       We require at least version 8.3.0 to install ffnet"
-      exit 9
+      if [[ $IGNORE_FFNET_ERRORS == TRUE ]]
+      then
+         echo "WARNING: gfortran is not available; skipping ffnet because --ignore-ffnet-errors was specified."
+      else
+         echo "ERROR: gfortran is not available. Please install it or load an appropriate module."
+         echo "       We require at least version 8.3.0 to install ffnet"
+         exit 9
+      fi
    fi
 fi
 
@@ -292,33 +308,28 @@ then
 
    # First get the version string as the last field of the first
    # line of the output of gfortran --version
-   GFORTRAN_VERSION=$(gfortran --version | head -n 1 | awk '{print $NF}')
+   GFORTRAN_VERSION=$("$GFORTRAN" --version | head -n 1 | awk '{print $NF}')
 
-   # Now split the version string into its components
-   # and capture the major, minor, and patch versions
-   GFORTRAN_MAJOR=$(echo $GFORTRAN_VERSION | awk -F. '{print $1}')
-   GFORTRAN_MINOR=$(echo $GFORTRAN_VERSION | awk -F. '{print $2}')
-   GFORTRAN_PATCH=$(echo $GFORTRAN_VERSION | awk -F. '{print $3}')
+   # Now split the version string into its major and minor components
+   GFORTRAN_MAJOR=$(echo "$GFORTRAN_VERSION" | awk -F. '{print $1}')
+   GFORTRAN_MINOR=$(echo "$GFORTRAN_VERSION" | awk -F. '{print $2}')
 
    # Now, we want to know if gfortran is 8.3 or higher.
 
-   # First check if the major version is less than 8
-   if [[ $GFORTRAN_MAJOR -lt 8 ]]
+   # Check if gfortran is older than 8.3.0
+   if [[ $GFORTRAN_MAJOR -lt 8 || ( $GFORTRAN_MAJOR -eq 8 && $GFORTRAN_MINOR -lt 3 ) ]]
    then
-      echo "ERROR: gfortran is too old. Please install at least version 8.3.0 or load an appropriate module."
-      exit 9
+      if [[ $IGNORE_FFNET_ERRORS == TRUE ]]
+      then
+         echo "WARNING: gfortran is too old; skipping ffnet because --ignore-ffnet-errors was specified."
+         FORTRAN_AVAILABLE=FALSE
+      else
+         echo "ERROR: gfortran is too old. Please install at least version 8.3.0 or load an appropriate module."
+         exit 9
+      fi
    fi
 
-   # Now check if the major version is 8 and the minor version is less
-   # than 3
-   if [[ $GFORTRAN_MAJOR -eq 8 && $GFORTRAN_MINOR -lt 3 ]]
-   then
-      echo "ERROR: gfortran is too old. Please install at least version 8.3.0 or load an appropriate module."
-      exit 9
-   fi
-
-   # At this point we know that gfortran is available and that it is
-   # at least version 8.3.0. So we can install ffnet.
+   # If the compiler is too old, ffnet is skipped when requested above.
 fi
 
 # ---------------------------
@@ -365,7 +376,7 @@ fi
 
 if [ ! -d "$MINIFORGE_DIR" ]
 then
-   mkdir -p $MINIFORGE_DIR
+   mkdir -p "$MINIFORGE_DIR"
 fi
 
 DATE=$(date +%F)
@@ -398,12 +409,12 @@ then
    REPO=https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VER}
    echo "Downloading $CANONICAL_INSTALLER from $REPO"
    echo "Running curl -OL $REPO/$CANONICAL_INSTALLER"
-   (cd $MINIFORGE_SRCDIR; curl -OL $REPO/$CANONICAL_INSTALLER)
+   (cd "$MINIFORGE_SRCDIR"; curl -OL "$REPO/$CANONICAL_INSTALLER")
 fi
 
 if [[ "$MINIFORGE_VER" == "latest" ]]
 then
-   mv -v $MINIFORGE_SRCDIR/$CANONICAL_INSTALLER $MINIFORGE_SRCDIR/$DATED_INSTALLER
+   mv -v "$MINIFORGE_SRCDIR/$CANONICAL_INSTALLER" "$MINIFORGE_SRCDIR/$DATED_INSTALLER"
    INSTALLER=$DATED_INSTALLER
 else
    INSTALLER=$CANONICAL_INSTALLER
@@ -412,7 +423,23 @@ fi
 # NOTE: We have to use strict conda-forge channel
 # -----------------------------------------------
 
+# Back up user configuration only when we are about to change it.
+ORIG_MAMBARC=$(mktemp)
+if [[ -f ~/.mambarc ]]
+then
+   cp -v ~/.mambarc "$ORIG_MAMBARC"
+   MAMBARC_FOUND=TRUE
+fi
+
+ORIG_CONDARC=$(mktemp)
+if [[ -f ~/.condarc ]]
+then
+   cp -v ~/.condarc "$ORIG_CONDARC"
+   CONDARC_FOUND=TRUE
+fi
+
 # Now create the good one (we restore the old one at the end)
+CONFIG_WRITTEN=TRUE
 cat << EOF > ~/.mambarc
 # Temporary mambarc from install_miniforge.bash
 channels:
@@ -437,7 +464,7 @@ EOF
 
 if [[ ! -d $MINIFORGE_INSTALLDIR ]]
 then
-   bash $MINIFORGE_SRCDIR/$INSTALLER -b -p $MINIFORGE_INSTALLDIR
+   bash "$MINIFORGE_SRCDIR/$INSTALLER" -b -p "$MINIFORGE_INSTALLDIR"
 fi
 
 export MAMBA_ROOT_PREFIX=$MINIFORGE_INSTALLDIR
@@ -448,26 +475,22 @@ MINIFORGE_BINDIR=$MINIFORGE_INSTALLDIR/bin
 # Create the Miniforge environment
 # --------------------------------
 
-$MINIFORGE_BINDIR/mamba create -y -p $MINIFORGE_ENVDIR python=${PYTHON_VER}
+"$MINIFORGE_BINDIR/mamba" create -y -p "$MINIFORGE_ENVDIR" "python=$PYTHON_VER"
 
 # Now install regular mamba packages
 # ----------------------------------
 
 function mamba_install {
-   MAMBA_INSTALL_COMMAND="$MINIFORGE_BINDIR/mamba install -p $MINIFORGE_ENVDIR -y"
-
    echo
    echo "(mamba) Now installing $*"
-   $MAMBA_INSTALL_COMMAND $*
+   "$MINIFORGE_BINDIR/mamba" install -p "$MINIFORGE_ENVDIR" -y "$@"
    echo
 }
 
 function micromamba_install {
-   MICROMAMBA_INSTALL_COMMAND="$MINIFORGE_BINDIR/micromamba install -p $MINIFORGE_ENVDIR -y"
-
    echo
    echo "(micromamba) Now installing $*"
-   $MICROMAMBA_INSTALL_COMMAND $*
+   "$MINIFORGE_BINDIR/micromamba" install -p "$MINIFORGE_ENVDIR" -y "$@"
    echo
 }
 
@@ -482,7 +505,7 @@ then
 
    echo "=== Installing micromamba ==="
    MICROMAMBA_URL="https://micro.mamba.pm/api/micromamba/${MICROMAMBA_ARCH}/latest"
-   curl -Ls ${MICROMAMBA_URL} | tar -C $MINIFORGE_INSTALLDIR -xvj bin/micromamba
+   curl -Ls "$MICROMAMBA_URL" | tar -C "$MINIFORGE_INSTALLDIR" -xvj bin/micromamba
 
 elif [[ "$USE_MAMBA" == "TRUE" ]]
 then
@@ -513,7 +536,7 @@ if [[ $ARCH == Darwin ]]
 then
    # First let's check the version of libcxx installed by asking mamba
 
-   LIBCXX_VERSION=$($MINIFORGE_ENVDIR/bin/mamba list libcxx | grep libcxx | awk '{print $2}')
+   LIBCXX_VERSION=$("$MINIFORGE_ENVDIR/bin/mamba" list libcxx | grep libcxx | awk '{print $2}')
 
    # This is the version X.Y.Z and we want to do things only if X is 14 as it's a directory in 15+
    # Let's use bash to extract the first number
@@ -525,12 +548,12 @@ then
       if [[ -f $MINIFORGE_ENVDIR/include/c++/v1/__string ]]
       then
          echo "Removing $MINIFORGE_ENVDIR/include/c++/v1/__string"
-         rm $MINIFORGE_ENVDIR/include/c++/v1/__string
+         rm "$MINIFORGE_ENVDIR/include/c++/v1/__string"
       fi
       if [[ -f $MINIFORGE_ENVDIR/include/c++/v1/__tuple ]]
       then
          echo "Removing $MINIFORGE_ENVDIR/include/c++/v1/__tuple"
-         rm $MINIFORGE_ENVDIR/include/c++/v1/__tuple
+         rm "$MINIFORGE_ENVDIR/include/c++/v1/__tuple"
       fi
    fi
 fi
@@ -553,20 +576,15 @@ $PACKAGE_INSTALL movingpandas geoviews hvplot">=0.11.0" geopandas bokeh jupyter_
 $PACKAGE_INSTALL skimpy
 $PACKAGE_INSTALL intake intake-parquet intake-xarray
 
-# Looks like mo_pack, libmo_pack, pyspharm, windspharm are not available on arm64
+# Looks like mo_pack and libmo_unpack are not available on arm64
 if [[ $MACH == arm64 ]]
 then
    $PACKAGE_INSTALL pygrib f90nml seawater
    $PACKAGE_INSTALL cmocean eofs
 else
    $PACKAGE_INSTALL pygrib f90nml seawater mo_pack libmo_unpack
-   # Next it looks like pyspharm and windspharm are not available for Python 3.11
-   if [[ $PYTHON_VER_WITHOUT_DOT -lt 311 ]]
-   then
-      $PACKAGE_INSTALL cmocean eofs pyspharm windspharm
-   else
-      $PACKAGE_INSTALL cmocean eofs
-   fi
+   $PACKAGE_INSTALL cmocean eofs
+   $PACKAGE_INSTALL pyspharm windspharm
 fi
 
 $PACKAGE_INSTALL pyasn1 ujson configobj argcomplete biopython
@@ -607,8 +625,6 @@ $PACKAGE_INSTALL basemap
 
 $PACKAGE_INSTALL libmagic python-magic
 
-$PACKAGE_INSTALL pyspharm windspharm
-
 # Only install pythran on linux. On mac it brings in an old clang
 if [[ $MINIFORGE_ARCH == Linux ]]
 then
@@ -619,7 +635,7 @@ fi
 # esmpy installs mpi. We don't want any of those in the bin dir
 # so we rename and relink. First we rename the files:
 
-cd $MINIFORGE_ENVDIR/bin
+cd "$MINIFORGE_ENVDIR/bin"
 
 /bin/mv -v mpicc         esmf-mpicc
 /bin/mv -v mpicxx        esmf-mpicxx
@@ -638,7 +654,7 @@ cd $MINIFORGE_ENVDIR/bin
 # We also want to link f2py to f2py3 for Python 3
 /bin/ln -sv f2py f2py3
 
-cd $SCRIPTDIR
+cd "$SCRIPTDIR"
 
 # Install weird nc_time_axis package
 # ----------------------------------
@@ -648,13 +664,13 @@ $PACKAGE_INSTALL -c conda-forge/label/renamed nc_time_axis
 # PIP PACKAGES
 # ------------
 
-PIP_INSTALL="$MINIFORGE_ENVDIR/bin/$PYTHON_EXEC -m pip install"
-PIP_UNINSTALL="$MINIFORGE_ENVDIR/bin/$PYTHON_EXEC -m pip uninstall -y"
+PIP_INSTALL=("$MINIFORGE_ENVDIR/bin/$PYTHON_EXEC" -m pip install)
+PIP_UNINSTALL=("$MINIFORGE_ENVDIR/bin/$PYTHON_EXEC" -m pip uninstall -y)
 
-$PIP_INSTALL PyRTF3 pipenv pymp-pypi h5py
-$PIP_INSTALL pycircleci metpy siphon questionary xgrads
-$PIP_INSTALL ruamel.yaml
-$PIP_INSTALL xgboost
+"${PIP_INSTALL[@]}" PyRTF3 pipenv pymp-pypi h5py
+"${PIP_INSTALL[@]}" pycircleci metpy siphon questionary xgrads
+"${PIP_INSTALL[@]}" ruamel.yaml
+"${PIP_INSTALL[@]}" xgboost
 
 # Tensorflow does not support Python 3.14 yet
 # https://github.com/tensorflow/tensorflow/issues/102890
@@ -662,23 +678,23 @@ if [[ $PYTHON_VER_WITHOUT_DOT -ge 314 ]]
 then
    echo "Skipping tensorflow installation as Python $PYTHON_VER is 3.14 or higher"
 else
-   $PIP_INSTALL tensorflow evidential-deep-learning silence_tensorflow
+   "${PIP_INSTALL[@]}" tensorflow evidential-deep-learning silence_tensorflow
 fi
-$PIP_INSTALL torch torchvision
-$PIP_INSTALL yaplon
-$PIP_INSTALL lxml
-$PIP_INSTALL juliandate
-$PIP_INSTALL pybufrkit
-$PIP_INSTALL pyephem
-$PIP_INSTALL redis
-$PIP_INSTALL Flask
-$PIP_INSTALL goes2go
-$PIP_INSTALL nco
-$PIP_INSTALL cdo
-$PIP_INSTALL ecmwf-opendata
-$PIP_INSTALL python-docx
-$PIP_INSTALL openpyxl
-$PIP_INSTALL adjustText
+"${PIP_INSTALL[@]}" torch torchvision
+"${PIP_INSTALL[@]}" yaplon
+"${PIP_INSTALL[@]}" lxml
+"${PIP_INSTALL[@]}" juliandate
+"${PIP_INSTALL[@]}" pybufrkit
+"${PIP_INSTALL[@]}" pyephem
+"${PIP_INSTALL[@]}" redis
+"${PIP_INSTALL[@]}" Flask
+"${PIP_INSTALL[@]}" goes2go
+"${PIP_INSTALL[@]}" nco
+"${PIP_INSTALL[@]}" cdo
+"${PIP_INSTALL[@]}" ecmwf-opendata
+"${PIP_INSTALL[@]}" python-docx
+"${PIP_INSTALL[@]}" openpyxl
+"${PIP_INSTALL[@]}" adjustText
 
 # some packages require a Fortran compiler. This sometimes isn't available
 # on macs (though usually is)
@@ -690,23 +706,17 @@ then
    # and latest scipy
    #
    # 1. This package now requires meson to build (for Python 3.12)
-   $PIP_INSTALL meson
+   "${PIP_INSTALL[@]}" meson
    # 1b. If we are running Python 3.13 or higher, we need to explicitly
    #     install setuptools and wheel as they are not installed by default
    if [[ $PYTHON_VER_WITHOUT_DOT -ge 313 ]]
    then
-      $PIP_INSTALL setuptools wheel
+      "${PIP_INSTALL[@]}" setuptools wheel
    fi
-   # For Python 3.13+, pip's isolated build environment does not inherit the
+    # For Python 3.13+, pip's isolated build environment does not inherit the
    # conda env packages (e.g. numpy), which ffnet needs at build time. Passing
    # --no-build-isolation tells pip to use the already-installed packages from
    # the conda env instead of creating a fresh isolated sandbox.
-   if [[ $PYTHON_VER_WITHOUT_DOT -ge 313 ]]
-   then
-      EXTRA_PIP_FLAGS='--no-build-isolation'
-   else
-      EXTRA_PIP_FLAGS=''
-   fi
    # 2. We also need f2py but that is in our install directory bin
    #    so we need to add that to the PATH
    export PATH=$MINIFORGE_ENVDIR/bin:$PATH
@@ -714,17 +724,36 @@ then
    #    it seems to not work as hoped. So, we create a new directory
    #    relative to the install script called tmp, and use that.
    #    It appears meson uses TMPDIR to store its build files.
-   mkdir -p $SCRIPTDIR/tmp-for-ffnet
-   export TMPDIR=$SCRIPTDIR/tmp-for-ffnet
+   mkdir -p "$SCRIPTDIR/tmp-for-ffnet"
+   export TMPDIR="$SCRIPTDIR/tmp-for-ffnet"
    # 4. Now we can install ffnet
    if [[ $FFNET_HACK == TRUE ]]
    then
-      $PIP_INSTALL $EXTRA_PIP_FLAGS git+https://github.com/mathomp4/ffnet@force-env-gfortran
+      FFNET_SOURCE=git+https://github.com/mathomp4/ffnet@force-env-gfortran
    else
-      $PIP_INSTALL $EXTRA_PIP_FLAGS git+https://github.com/mrkwjc/ffnet
+      FFNET_SOURCE=git+https://github.com/mrkwjc/ffnet
+   fi
+   if [[ $PYTHON_VER_WITHOUT_DOT -ge 313 ]]
+   then
+      FFNET_PIP_STATUS=0
+      FC="$GFORTRAN" F77="$GFORTRAN" "${PIP_INSTALL[@]}" --no-build-isolation "$FFNET_SOURCE" || FFNET_PIP_STATUS=$?
+   else
+      FFNET_PIP_STATUS=0
+      FC="$GFORTRAN" F77="$GFORTRAN" "${PIP_INSTALL[@]}" "$FFNET_SOURCE" || FFNET_PIP_STATUS=$?
+   fi
+   if [[ $FFNET_PIP_STATUS -ne 0 ]]
+   then
+      if [[ $IGNORE_FFNET_ERRORS == TRUE ]]
+      then
+         echo "WARNING: ffnet installation failed; continuing because --ignore-ffnet-errors was specified."
+      else
+         echo "ERROR: ffnet installation failed. Use --ignore-ffnet-errors to continue without ffnet."
+         rm -rf "$SCRIPTDIR/tmp-for-ffnet"
+         exit 1
+      fi
    fi
    # 5. We can now remove the tmp directory
-   rm -rf $SCRIPTDIR/tmp-for-ffnet
+   rm -rf "$SCRIPTDIR/tmp-for-ffnet"
 fi
 
 # Finally pygrads is not in pip
@@ -733,20 +762,21 @@ fi
 PYGRADS_VERSION="pygrads-3.0.b1"
 if [[ -d $MINIFORGE_SRCDIR/$PYGRADS_VERSION ]]
 then
-   rm -rf $MINIFORGE_SRCDIR/$PYGRADS_VERSION
+   rm -rf "${MINIFORGE_SRCDIR:?}/$PYGRADS_VERSION"
 fi
 
-tar xf $MINIFORGE_SRCDIR/$PYGRADS_VERSION.tar.gz -C $MINIFORGE_SRCDIR
+tar xf "$MINIFORGE_SRCDIR/$PYGRADS_VERSION.tar.gz" -C "$MINIFORGE_SRCDIR"
 
-cd $MINIFORGE_SRCDIR/$PYGRADS_VERSION
+cd "$MINIFORGE_SRCDIR/$PYGRADS_VERSION"
 
-$MINIFORGE_ENVDIR/bin/$PYTHON_EXEC setup.py install
+"$MINIFORGE_ENVDIR/bin/$PYTHON_EXEC" setup.py install
 
 # Inject code fix for spectral
 # ----------------------------
-find $MINIFORGE_ENVDIR/lib -name 'gacm.py' -print0 | xargs -0 $SED -i -e '/cm.spectral,/ s/spectral/nipy_spectral/'
+# SED_INPLACE contains the appropriate in-place option for the platform.
+find "$MINIFORGE_ENVDIR/lib" -name 'gacm.py' -print0 | xargs -0 "${SED_INPLACE[@]}" -e '/cm.spectral,/ s/spectral/nipy_spectral/'
 
-cd $SCRIPTDIR
+cd "$SCRIPTDIR"
 
 # Edit matplotlibrc to use TkAgg as the default backend for matplotlib
 # on Linux, but MacOSX on macOS
@@ -759,9 +789,9 @@ cd $SCRIPTDIR
 #
 if [[ $ARCH == Darwin ]]
 then
-   find $MINIFORGE_ENVDIR/lib -name 'matplotlibrc' -print0 | xargs -0 $SED -e '/.*backend:/ s/^.*backend:.*/backend: MacOSX/'
+   find "$MINIFORGE_ENVDIR/lib" -name 'matplotlibrc' -print0 | xargs -0 "${SED_INPLACE[@]}" -e '/.*backend:/ s/^.*backend:.*/backend: MacOSX/'
 else
-   find $MINIFORGE_ENVDIR/lib -name 'matplotlibrc' -print0 | xargs -0 $SED -e '/.*backend:/ s/^.*backend:.*/backend: TkAgg/'
+   find "$MINIFORGE_ENVDIR/lib" -name 'matplotlibrc' -print0 | xargs -0 "${SED_INPLACE[@]}" -e '/.*backend:/ s/^.*backend:.*/backend: TkAgg/'
 fi
 
 # There currently seems to be a bug with ipython3
@@ -769,19 +799,15 @@ fi
 # the solution seems to be to pip uninstall prompt_toolkit
 # and then reinstall it. This is a temporary fix until
 # the issue is resolved.
-$PIP_UNINSTALL prompt_toolkit
-$PIP_INSTALL prompt_toolkit
+"${PIP_UNINSTALL[@]}" prompt_toolkit
+"${PIP_INSTALL[@]}" prompt_toolkit
 
 # Use mamba to output list of packages installed
 # ----------------------------------------------
-cd $MINIFORGE_ENVDIR
-"$MINIFORGE_BINDIR"/mamba list -n "$MINIFORGE_ENVNAME" --explicit > distribution_spec_file.txt
-"$MINIFORGE_BINDIR"/mamba list -n "$MINIFORGE_ENVNAME" > mamba_list_packages.txt
+cd "$MINIFORGE_ENVDIR"
+"$MINIFORGE_BINDIR"/mamba list -p "$MINIFORGE_ENVDIR" --explicit > distribution_spec_file.txt
+"$MINIFORGE_BINDIR"/mamba list -p "$MINIFORGE_ENVDIR" > mamba_list_packages.txt
 ./bin/pip freeze > pip_freeze_packages.txt
-
-# Restore User's .mambarc and .condarc using cleanup function
-# -----------------------------------------------------------
-cleanup
 
 # As a final check to make sure the defaults channel has not
 # infected the environment, we will check the mamba_list_packages.txt
@@ -798,5 +824,4 @@ then
    exit 9
 fi
 
-cd $SCRIPTDIR
-
+cd "$SCRIPTDIR"
