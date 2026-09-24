@@ -17,6 +17,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [26.7.2-0] - 2026-09-24
+
+### Changed
+
+- Update example Miniforge version to 26.7.2-0
+
+### Added
+
+- Add `--ignore-ffnet-errors` option to continue the installation if `ffnet` fails
+- Explicit Conda Packages
+  - pyspharm
+  - windspharm
+
+### Fixed
+
+- Correct the advertised installation path and run the final defaults-channel check
+- Restore temporary Conda configuration on exit and use the detected macOS Fortran compiler for ffnet
+- Avoid installing pyspharm and windspharm on unsupported arm64 systems
+- Fix the platform-specific in-place sed invocation for the PyGrADS patch
+
 ## [26.3.2-0] - 2026-05-06
 
 ### Changed
