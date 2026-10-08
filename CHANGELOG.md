@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [26.7.2-1] - 2026-10-08
+
 ### Added
 
 - Add `--esmf <serial|mpich>` option (default: `serial`) to choose the ESMF build
