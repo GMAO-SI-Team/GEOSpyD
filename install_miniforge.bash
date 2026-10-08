@@ -74,7 +74,7 @@ EXAMPLE_INSTALLDIR="/opt/GEOSpyD"
 EXAMPLE_DATE=$(date +%F)
 usage() {
    echo "Usage: $0 --python_version <python version> --miniforge_version <miniforge> --prefix <prefix>"
-   echo "                   [--micromamba | --mamba] [--blas <blas>] [--ffnet-hack] [--ignore-ffnet-errors]"
+   echo "                   [--micromamba | --mamba] [--blas <blas>] [--esmf <serial|mpich>] [--ffnet-hack] [--ignore-ffnet-errors]"
    echo ""
    echo "   Required arguments:"
    echo "      --python_version <python version> (e.g., ${EXAMPLE_PY_VERSION})"
@@ -87,6 +87,9 @@ usage() {
    echo "      --mamba: Use mamba installer"
    echo "      --ffnet-hack: Install ffnet from fork (used on Bucy due to odd issue not finding gfortran)"
    echo "      --ignore-ffnet-errors: Continue if ffnet fails or gfortran is unavailable/too old on Linux (default: fail installation)"
+   echo "      --esmf <serial|mpich>: ESMF build to install (default: serial)"
+   echo "           serial: conda-forge nompi ESMF (no MPI library; single-process regridding)"
+   echo "           mpich:  MPICH-backed ESMF (needed only for multi-rank ESMPy)"
    echo "      --help: Print this message"
    echo ""
    echo "   By default we use the micromamba installer on both Linux and macOS"
@@ -151,6 +154,7 @@ USE_MAMBA=FALSE
 USE_MICROMAMBA=TRUE
 FFNET_HACK=FALSE
 IGNORE_FFNET_ERRORS=FALSE
+ESMF_COMM=serial
 PYTHON_VER=''
 MINIFORGE_VER=''
 MINIFORGE_DIR=''
@@ -158,7 +162,7 @@ MINIFORGE_DIR=''
 while [[ $# -gt 0 ]]
 do
    case "$1" in
-      --python_version|--miniforge_version|--prefix|--blas)
+      --python_version|--miniforge_version|--prefix|--blas|--esmf)
          if [[ $# -lt 2 || $2 == --* ]]
          then
             echo "ERROR: $1 requires a value"
@@ -196,6 +200,10 @@ do
          ;;
       --blas)
          BLAS_IMPL=$2
+         shift
+         ;;
+      --esmf)
+         ESMF_COMM=$2
          shift
          ;;
       --help | -h)
@@ -236,6 +244,14 @@ fi
 if [[ $BLAS_IMPL != mkl && $BLAS_IMPL != openblas && $BLAS_IMPL != accelerate && $BLAS_IMPL != blis ]]
 then
    echo "ERROR: BLAS implementation $BLAS_IMPL not recognized"
+   usage
+   exit 1
+fi
+
+# We will only allow ESMF_COMM to be: serial or mpich
+if [[ $ESMF_COMM != serial && $ESMF_COMM != mpich ]]
+then
+   echo "ERROR: ESMF build $ESMF_COMM not recognized (use serial or mpich)"
    usage
    exit 1
 fi
@@ -558,6 +574,15 @@ then
    fi
 fi
 
+if [[ $ESMF_COMM == serial ]]
+then
+   # Pin the ESMF build so later installs cannot swap in the MPICH build.
+   mkdir -p "$MINIFORGE_ENVDIR/conda-meta"
+   echo "esmf=*=nompi_*" >> "$MINIFORGE_ENVDIR/conda-meta/pinned"
+   $PACKAGE_INSTALL 'esmf=*=nompi_*'
+else
+   echo "Installing MPICH-backed ESMF (--esmf mpich)"
+fi
 $PACKAGE_INSTALL esmpy
 $PACKAGE_INSTALL xesmf
 $PACKAGE_INSTALL pytest
@@ -632,24 +657,39 @@ then
    $PACKAGE_INSTALL pythran
 fi
 
-# esmpy installs mpi. We don't want any of those in the bin dir
-# so we rename and relink. First we rename the files:
+# esmpy installs mpi. With --esmf mpich we keep the MPICH executables in
+# the bin dir but rename and relink them so they don't clash with site MPI.
+# With --esmf serial (default) nothing is renamed.
+if [[ $ESMF_COMM == mpich ]]
+then
+   cd "$MINIFORGE_ENVDIR/bin"
+
+   # First we rename the files:
+   /bin/mv -v mpicc         esmf-mpicc
+   /bin/mv -v mpicxx        esmf-mpicxx
+   /bin/mv -v mpiexec.hydra esmf-mpiexec.hydra
+   /bin/mv -v mpifort       esmf-mpifort
+   /bin/mv -v mpichversion  esmf-mpichversion
+   /bin/mv -v mpivars       esmf-mpivars
+
+   # Now we have to handle the symlinks
+   /bin/rm -v mpic++  && /bin/ln -sv esmf-mpicxx        esmf-mpic++
+   /bin/rm -v mpiexec && /bin/ln -sv esmf-mpiexec.hydra esmf-mpiexec
+   /bin/rm -v mpirun  && /bin/ln -sv esmf-mpiexec.hydra esmf-mpirun
+   /bin/rm -v mpif77  && /bin/ln -sv esmf-mpifort       esmf-mpif77
+   /bin/rm -v mpif90  && /bin/ln -sv esmf-mpifort       esmf-mpif90
+fi
+
+# Verify which ESMF comm layer was actually installed
+ESMF_MK="$MINIFORGE_ENVDIR/lib/esmf.mk"
+if [[ -f $ESMF_MK ]]
+then
+   echo "ESMF comm layer: $(grep '^# ESMF_COMM:' "$ESMF_MK")"
+else
+   echo "WARNING: $ESMF_MK not found; could not verify ESMF comm layer"
+fi
 
 cd "$MINIFORGE_ENVDIR/bin"
-
-/bin/mv -v mpicc         esmf-mpicc
-/bin/mv -v mpicxx        esmf-mpicxx
-/bin/mv -v mpiexec.hydra esmf-mpiexec.hydra
-/bin/mv -v mpifort       esmf-mpifort
-/bin/mv -v mpichversion  esmf-mpichversion
-/bin/mv -v mpivars       esmf-mpivars
-
-# Now we have to handle the symlinks
-/bin/rm -v mpic++  && /bin/ln -sv esmf-mpicxx        esmf-mpic++
-/bin/rm -v mpiexec && /bin/ln -sv esmf-mpiexec.hydra esmf-mpiexec
-/bin/rm -v mpirun  && /bin/ln -sv esmf-mpiexec.hydra esmf-mpirun
-/bin/rm -v mpif77  && /bin/ln -sv esmf-mpifort       esmf-mpif77
-/bin/rm -v mpif90  && /bin/ln -sv esmf-mpifort       esmf-mpif90
 
 # We also want to link f2py to f2py3 for Python 3
 /bin/ln -sv f2py f2py3

@@ -7,9 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [26.7.2-1] - 2026-10-08
+
 ### Added
 
+- Add `--esmf <serial|mpich>` option (default: `serial`) to choose the ESMF build
+  - `serial` installs conda-forge's `nompi` ESMF and pins it in `conda-meta/pinned`
+  - `mpich` installs the MPICH-backed ESMF and keeps the MPI wrapper rename workaround
+  - The installed ESMF comm layer is printed after the ESMF install
+
 ### Changed
+
+- Default ESMF build is now serial (`nompi`) rather than MPICH-backed; use `--esmf mpich` for MPI-distributed ESMPy
 
 ### Deprecated
 
