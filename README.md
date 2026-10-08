@@ -31,11 +31,19 @@ On Linux, ffnet requires `gfortran` 8.3 or newer; by default its absence or
 an ffnet build failure stops installation. Use `--ignore-ffnet-errors` to
 continue without ffnet. On macOS, a missing compiler skips ffnet automatically.
 
+By default the install uses serial (`nompi`) ESMF, which is enough for
+xESMF regridding in a single process and avoids pulling in an MPI library.
+Use `--esmf mpich` only if you need MPI-distributed ESMPy. The installed
+ESMF comm layer is printed at the end of the install, and the pin on the
+ESMF build is written to `envs/py<version>/conda-meta/pinned` so later
+package installs cannot replace it. If the MPICH-backed ESMF is needed
+alongside the serial one, install a second stack with a different `--prefix`.
+
 ## Usage
 
 ```
 Usage: ./install_miniforge.bash --python_version <python version> --miniforge_version <miniforge> --prefix <prefix>
-                   [--micromamba | --mamba] [--blas <blas>] [--ffnet-hack] [--ignore-ffnet-errors]
+                   [--micromamba | --mamba] [--blas <blas>] [--esmf <serial|mpich>] [--ffnet-hack] [--ignore-ffnet-errors]
 
    Required arguments:
       --python_version <python version> (e.g., 3.14)
@@ -48,7 +56,10 @@ Usage: ./install_miniforge.bash --python_version <python version> --miniforge_ve
       --mamba: Use mamba installer
       --ffnet-hack: Install ffnet from fork (used on Bucy due to odd issue not finding gfortran)
       --ignore-ffnet-errors: Continue if ffnet fails or gfortran is unavailable/too old on Linux (default: fail installation)
-      --help: Print this message
+      --esmf <serial|mpich>: ESMF build to install (default: serial)
+         serial: conda-forge nompi ESMF (no MPI library; single-process regridding)
+         mpich:  MPICH-backed ESMF (needed only for multi-rank ESMPy)
+       --help: Print this message
 
    By default we use the micromamba installer on both Linux and macOS
    For BLAS, we use accelerate on Apple Silicon and MKL elsewhere
